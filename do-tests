@@ -1,0 +1,129 @@
+#!/bin/sh
+
+source mk/prefix.mk
+TESTER=./${target_p}tester
+
+[ "$1" = "-v" ] && {
+	verbose=1
+	shift
+}
+
+[ "$1" = "-w" ] && {
+	rewrite=1
+	shift
+}
+
+[ "$1" = "-i" ] && {
+	invert=1
+	shift
+}
+
+filter=$1
+
+do_test() {
+	local suite
+	local testname
+	local ret
+	local info
+	local out
+	local reason
+	suite=${1%%/*}
+	testname=${1##*/}
+	if [ "$testname" = "$1" ]; then
+		infix=
+	else
+		infix=".$testname"
+	fi
+	ret=0
+	if [ -d "test/data/$suite" ]; then
+		find -L test/data/$suite -name '*.in' | while read i; do
+			input=$i
+			output=${input%.in}$infix.out
+			if [ -s "$input" ]; then
+				input=`readlink -e "$input"`
+			fi
+			if [ -s "$output" ]; then
+				output=`readlink -e "$output"`
+			fi
+			if [ -f "$input" -a -x "$input" ]; then
+				"$input" > ${tmp_p}test.in
+				input=${tmp_p}test.in
+			fi
+			if [ -f "$output" -a -x "$output" ]; then
+				"$output" > ${tmp_p}test.out
+				output=${tmp_p}test.out
+			fi
+			$TESTER $1 < "$input" > ${tmp_p}test.stdout 2> ${tmp_p}test.stderr
+			res=$?
+			if [ $res != 0 ]; then
+				echo "on input $i (exit code $res):"
+				cat ${tmp_p}test.stderr
+				ret=1
+			elif ! diff -Nu "$output" ${tmp_p}test.stdout >${tmp_p}test.diff 2>/dev/null; then
+				echo "on input $i (wrong output):"
+				cat ${tmp_p}test.stderr
+				[ -n "$verbose" ] && cat ${tmp_p}test.diff
+				[ -n "$rewrite" ] && {
+					echo Rewriting "$output" ...
+					cp ${tmp_p}test.stdout "$output"
+				}
+				ret=1
+			elif [ -n "$verbose" ]; then
+				echo "on input $i:"
+				cat ${tmp_p}test.stderr
+			fi
+			[ "$ret" = "0" ]
+		done || ret=1
+	else
+		echo "no test inputs"
+		return 1
+	fi
+	return $ret
+}
+
+{
+	$TESTER --list
+} > ${tmp_p}tests
+
+ntests=`wc -l < ${tmp_p}tests`
+
+tests=`cat ${tmp_p}tests`
+tests_pad=0
+for t in $tests; do
+	tn=${t%%!*}
+	if [ $tests_pad -lt ${#tn} ]; then
+		tests_pad=${#tn}
+	fi
+done
+
+n=1
+failed=0
+echo Testing...
+for t in $tests; do
+	testname=${t%%!*}
+	echo -n "Test `printf %${#ntests}s $n`/$ntests ($testname) "
+	n=$(($n+1))
+	printf %$(($tests_pad - ${#testname}))s
+
+	[ "$testname" != "$filter" ] && [ "${testname%%/*}" != "$filter" ] && [ -n "$filter" ]
+	match="$?"
+	if [ \( "$match" != 0 -a "$invert" = 1 \) -o \( "$match" = 0 -a "$invert" != 1 \) ]; then
+		echo SKIP
+		continue
+	fi
+	output=`do_test "$testname"`
+	if [ "$?" -eq 0 ]; then
+		echo OK
+		[ -n "$output" ] && echo "$output"
+	else
+		echo FAILED
+		[ -n "$output" ] && echo "$output"
+		failed=$(($failed+1))
+	fi
+done
+
+if [ "$failed" = "0" ]; then
+	echo "All tests passed"
+else
+	echo "$failed tests failed"
+fi

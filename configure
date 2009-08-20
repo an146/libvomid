@@ -1,0 +1,62 @@
+#!/bin/sh
+source mk/prefix.mk
+
+cflags=
+ldflags=
+platforms=
+host=
+exe_suffix=
+
+while getopts h: flag
+do
+	case $flag in
+	h)	host="$OPTARG";;
+	?)	echo "Usage: $0 [-h host_arch]"
+		exit 1;;
+	esac
+done
+
+shift $(($OPTIND - 1))
+
+mkdir -p ${target_p} ${tmp_p}
+if [ -z "$host" ]; then
+	echo C99=c99
+else
+	echo C99="$host-gcc -std=c99"
+	echo CC="$host-gcc"
+	echo CXX="$host-g++"
+	echo AR="$host-ar"
+fi > ${target_p}config.mk
+
+for platform in win32 posix alsa; do
+	platform_u=`echo $platform | tr '[a-z]' '[A-Z]'`
+	if make -s check_$platform >${tmp_p}ldflags 2>/dev/null; then
+		cflags+=" -DHAL_$platform_u"
+		if [ $platform = alsa ]; then
+			ldflags+=" -lasound"
+		elif [ $platform = win32 ]; then
+			ldflags+=" -lwinmm"
+			exe_suffix=.exe
+		fi
+		platforms+=" $platform"
+	fi
+done
+
+cat >> ${target_p}config.mk <<EOF
+
+CONF=debug
+include mk/\${CONF}.mk
+
+CFLAGS+=$cflags
+LDFLAGS+=$ldflags
+PLATFORMS=$platforms
+EXE_SUFFIX=$exe_suffix
+EOF
+
+# Pass remaining arguments on
+while [ -n "$1" ]; do
+	echo $1 >> ${target_p}config.mk
+	shift
+done
+
+cat ${target_p}config.mk
