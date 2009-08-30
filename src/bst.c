@@ -19,8 +19,8 @@
  *   (hm, maybe somehow make a feature out of it? :)
  * - erased nodes are reused only after committing
  * implementation notes:
- * - as you can see, the only write operations supported are insert and erase.
- *   so inserted/erased notes get tracked, and when you commit, data from erased nodes
+ * - all write operations are implemented in terms of inserting and erasing.
+ *   inserted/erased notes get tracked, and at commit time, data from erased nodes
  *   get bundled and stored in rev. erased nodes go to the free nodes pool.
  *   revs are essentially diffs. when updating, the path from current revision to needed one
  *   is traversed, and revs on it are "toggled" - reversed and applied. it's slow, but
