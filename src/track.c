@@ -94,6 +94,7 @@ track_init(track_t *track, file_t *file, const notesystem_t *notesystem)
 	track->name = "";
 	track->primary_program = -1;
 	track->notesystem = notesystem;
+	track->rendersystem = &notesystem->default_rendersystem;
 	track->temp_channels = NULL;
 	memset(track->channel_usage, 0, sizeof(track->channel_usage));
 }
