@@ -9,7 +9,7 @@
 extern "C" {
 #endif
 
-#include <stdio.h> /* FILE */
+#include <stdio.h>  /* FILE */
 #include <stdlib.h> /* size_t */
 #include <stddef.h> /* offsetof */
 #include <stdint.h> /* uint16_t */
@@ -103,11 +103,11 @@ enum {
 };
 
 struct vmd_ctrl_info_t {
-	const char *name;
-	int default_value;
-	int midi_ctrl;
-	int midi_meta;
-	int (*read)(unsigned char *, int); /* used only for metas */
+	const char  *name;
+	int          default_value;
+	int          midi_ctrl;
+	int          midi_meta;
+	int  (*read)(unsigned char *, int); /* used only for metas */
 	void (*write)(vmd_ctrl_info_t *, int, int, unsigned char *, int *);
 };
 
@@ -127,13 +127,16 @@ struct vmd_bst_node_t {
 	vmd_bst_node_t *child[2];
 	vmd_bst_node_t *next; /* for slist of inserted nodes */
 
-	int balance:3;
-	unsigned idx:1;
-	unsigned in_tree:1;
-	unsigned was_in_tree:1; // only used internally in bst_update(),
-							// so we can use it for node marking
-	unsigned inserted:1;
-	unsigned saved:1;
+	int             balance :3;
+	unsigned        idx     :1;
+	unsigned        in_tree :1;
+	unsigned        inserted:1;
+	unsigned        saved   :1;
+
+	/* only used internally in bst_update(),
+	 * so we can use it for node marking */
+	unsigned was_in_tree    :1;
+
 	char data[];
 };
 
@@ -143,8 +146,8 @@ struct vmd_bst_node_t {
  * root(empty) = child(leaf) = NULL
  */
 
-vmd_bst_node_t *    vmd_bst_node_child_most(vmd_bst_node_t *node, int dir);
-vmd_bst_node_t *    vmd_bst_node_adj(vmd_bst_node_t *node, int dir);
+vmd_bst_node_t *vmd_bst_node_child_most(vmd_bst_node_t *node, int dir);
+vmd_bst_node_t *vmd_bst_node_adj(vmd_bst_node_t *node, int dir);
 
 #define vmd_bst_node_leftmost(x) vmd_bst_node_child_most(x, 0)
 #define vmd_bst_node_rightmost(x) vmd_bst_node_child_most(x, 1)
@@ -160,48 +163,38 @@ vmd_bst_node_t *    vmd_bst_node_adj(vmd_bst_node_t *node, int dir);
 #define vmd_bst_empty(t) ((t)->head.child[0] == NULL)
 #define vmd_bst_node_is_end(n) ((n) == (n)->parent)
 
-typedef int (*vmd_bst_cmp_t)(const void *, const void *);
+typedef int  (*vmd_bst_cmp_t)(const void *, const void *);
 typedef void (*vmd_bst_upd_t)(vmd_bst_node_t *);
 
 struct vmd_bst_t {
-	vmd_bst_node_t head;
-	size_t dsize;
-	size_t csize;
-	vmd_bst_cmp_t cmp;
-	vmd_bst_upd_t upd;
+	vmd_bst_node_t  head;
+	size_t          dsize;
+	size_t          csize;
+	vmd_bst_cmp_t   cmp;
+	vmd_bst_upd_t   upd;
 
-	vmd_bst_rev_t *tip;
+	vmd_bst_rev_t  *tip;
 	vmd_bst_node_t *inserted, *erased, *free, *save;
-	size_t tree_size;
+	size_t          tree_size;
 };
 
-void                vmd_bst_init(vmd_bst_t *, size_t, size_t, vmd_bst_cmp_t, vmd_bst_upd_t);
-void                vmd_bst_fini(vmd_bst_t *);
+void vmd_bst_init(vmd_bst_t *, size_t, size_t, vmd_bst_cmp_t, vmd_bst_upd_t);
+void vmd_bst_fini(vmd_bst_t *);
 
 static inline size_t
 vmd_bst_size(vmd_bst_t *tree) {
 	return tree->tree_size;
 }
 
-void                vmd_bst_clear(vmd_bst_t *);
-vmd_bst_node_t *    vmd_bst_insert(vmd_bst_t *, const void *);
-vmd_bst_node_t *    vmd_bst_erase(vmd_bst_t *, vmd_bst_node_t *);
-void                vmd_bst_erase_range(vmd_bst_t *, vmd_bst_node_t *, vmd_bst_node_t *);
-void                vmd_bst_change(vmd_bst_t *, vmd_bst_node_t *, const void *);
+void            vmd_bst_clear(vmd_bst_t *);
+vmd_bst_node_t *vmd_bst_insert(vmd_bst_t *, const void *);
+vmd_bst_node_t *vmd_bst_erase(vmd_bst_t *, vmd_bst_node_t *);
+void            vmd_bst_erase_range(vmd_bst_t *, vmd_bst_node_t *, vmd_bst_node_t *);
+void            vmd_bst_change(vmd_bst_t *, vmd_bst_node_t *, const void *);
 
-/*
- * returns the first node, for which
- * tree->cmp(node->data, data) == 0
- * if there's no such node, returns NULL
- */
-vmd_bst_node_t *    vmd_bst_find(vmd_bst_t *tree, const void *data);
+vmd_bst_node_t *vmd_bst_find(vmd_bst_t *tree, const void *data);
 
-/*
- * returns the first node, for which
- * tree->cmp(node->data, data) >= bound
- * if there's no such node, returns head
- */
-vmd_bst_node_t *    vmd_bst_bound(vmd_bst_t *tree, const void *data, int bound);
+vmd_bst_node_t *vmd_bst_bound(vmd_bst_t *tree, const void *data, int bound);
 
 static inline vmd_bst_node_t *
 vmd_bst_lower_bound(vmd_bst_t *tree, const void *data) {
@@ -213,14 +206,9 @@ vmd_bst_upper_bound(vmd_bst_t *tree, const void *data) {
 	return vmd_bst_bound(tree, data, 1);
 }
 
-vmd_bst_rev_t *     vmd_bst_commit(vmd_bst_t *);
-
-/* return slist of nodes that changed in_tree
- * you can check in_tree of each node to determine what happened
- * example: size_change() in test/bst.c
- */
-vmd_bst_node_t *    vmd_bst_revert(vmd_bst_t *);
-vmd_bst_node_t *    vmd_bst_update(vmd_bst_t *, vmd_bst_rev_t *);
+vmd_bst_rev_t  *vmd_bst_commit(vmd_bst_t *);
+vmd_bst_node_t *vmd_bst_revert(vmd_bst_t *);
+vmd_bst_node_t *vmd_bst_update(vmd_bst_t *, vmd_bst_rev_t *);
 
 /* map.c */
 
@@ -234,16 +222,16 @@ struct vmd_map_bstdata_t {
 	int value;
 };
 
-void            vmd_map_init(vmd_map_t *, int default_value);
-void            vmd_map_fini(vmd_map_t *);
+void vmd_map_init(vmd_map_t *, int default_value);
+void vmd_map_fini(vmd_map_t *);
 
-int             vmd_map_get(vmd_map_t *, vmd_time_t, vmd_time_t *);
-void            vmd_map_get_change(vmd_map_t *, vmd_time_t *, int *);
-void            vmd_map_set(vmd_map_t *, vmd_time_t, int);
-void            vmd_map_set_range(vmd_map_t *, vmd_time_t, vmd_time_t, int);
-void            vmd_map_copy(vmd_map_t *, vmd_time_t, vmd_time_t, vmd_map_t *, vmd_time_t);
+int  vmd_map_get(vmd_map_t *, vmd_time_t, vmd_time_t *);
+void vmd_map_get_change(vmd_map_t *, vmd_time_t *, int *);
+void vmd_map_set(vmd_map_t *, vmd_time_t, int);
+void vmd_map_set_range(vmd_map_t *, vmd_time_t, vmd_time_t, int);
+void vmd_map_copy(vmd_map_t *, vmd_time_t, vmd_time_t, vmd_map_t *, vmd_time_t);
 
-vmd_bool_t      vmd_map_eq(vmd_map_t *, vmd_map_t *, vmd_time_t, vmd_time_t);
+vmd_bool_t vmd_map_eq(vmd_map_t *, vmd_map_t *, vmd_time_t, vmd_time_t);
 
 static inline vmd_time_t
 vmd_map_time(vmd_bst_node_t *node)
@@ -275,23 +263,25 @@ struct vmd_pool_t {
 	struct vmd_pool_chunk_t *chunk;
 };
 
-void            vmd_pool_init(vmd_pool_t *);
-void            vmd_pool_fini(vmd_pool_t *);
-void *          vmd_pool_alloc(vmd_pool_t *, size_t);
+void  vmd_pool_init(vmd_pool_t *);
+void  vmd_pool_fini(vmd_pool_t *);
+void *vmd_pool_alloc(vmd_pool_t *, size_t);
 
 /* file.c */
 
 #define VMD_MAX_TRACKS 32
 
 struct vmd_file_t {
-	unsigned int division;
-	int tracks;
-	vmd_track_t *track[VMD_MAX_TRACKS];
-	vmd_channel_t channel[VMD_CHANNELS];
-	vmd_map_t ctrl[VMD_FCTRLS];
-	vmd_map_t measure_index;
-	vmd_pool_t pool;
-	vmd_track_t *tracks_list;
+	unsigned int   division;
+	int            tracks;
+
+	vmd_track_t   *track[VMD_MAX_TRACKS];
+	vmd_channel_t  channel[VMD_CHANNELS];
+	vmd_map_t      ctrl[VMD_FCTRLS];
+	vmd_track_t   *tracks_list;
+
+	vmd_map_t      measure_index;
+	vmd_pool_t     pool;
 };
 
 void            vmd_file_init(vmd_file_t *);
@@ -317,42 +307,42 @@ struct vmd_measure_t {
 typedef void (*vmd_measure_clb_t)(const vmd_measure_t *, void *);
 
 //vmd_measure_t * vmd_file_measure(vmd_file_t *, int);
-void            vmd_file_measures(vmd_file_t *, vmd_time_t, vmd_time_t, vmd_measure_clb_t, void *);
-void            vmd_file_measure_at(vmd_file_t *, vmd_time_t, vmd_measure_t *);
+void vmd_file_measures(vmd_file_t *, vmd_time_t, vmd_time_t, vmd_measure_clb_t, void *);
+void vmd_file_measure_at(vmd_file_t *, vmd_time_t, vmd_measure_t *);
 
 /* import.c */
 
-vmd_status_t    vmd_file_import_f(vmd_file_t *, FILE *, vmd_bool_t *sha_ok);
+vmd_status_t vmd_file_import_f(vmd_file_t *, FILE *, vmd_bool_t *sha_ok);
 
 /* export.c */
 
-vmd_status_t    vmd_file_export_f(vmd_file_t *, FILE *);
+vmd_status_t vmd_file_export_f(vmd_file_t *, FILE *);
 
 /* play.c */
 
 typedef void (*vmd_event_clb_t)(unsigned char *, size_t, void *);
 typedef vmd_status_t (*vmd_delay_clb_t)(vmd_time_t delay, int tempo, void *);
 
-vmd_status_t    vmd_file_play(vmd_file_t *, vmd_time_t, vmd_event_clb_t, vmd_delay_clb_t, void *);
+vmd_status_t vmd_file_play(vmd_file_t *, vmd_time_t, vmd_event_clb_t, vmd_delay_clb_t, void *);
 
 /* note.c */
 
 struct vmd_note_t {
-	vmd_track_t *track;
+	vmd_track_t    *track;
 
-	vmd_time_t on_time, off_time;
-	vmd_velocity_t on_vel, off_vel;
-	vmd_pitch_t pitch;
+	vmd_time_t      on_time, off_time;
+	vmd_velocity_t  on_vel,  off_vel;
+	vmd_pitch_t     pitch;
 
 	vmd_midipitch_t midipitch;
 
 	//TODO: we could use bst_node_t::was_in_tree
-	unsigned char mark;
-	vmd_channel_t *channel;
-	vmd_note_t *next; // for destructive operations on ranges
+	unsigned char   mark;
+	vmd_channel_t  *channel;
+	vmd_note_t     *next; // for destructive operations on ranges
 };
 
-void            vmd_note_isolate(vmd_note_t *);
+void vmd_note_isolate(vmd_note_t *);
 
 enum {
 	VMD_LEVEL_NORMAL,
@@ -366,7 +356,7 @@ struct vmd_rendersystem_t {
 	int (*pitch2level)(vmd_pitch_t);
 };
 
-vmd_pitch_t     vmd_rendersystem_level2pitch(const vmd_rendersystem_t *, int);
+vmd_pitch_t vmd_rendersystem_level2pitch(const vmd_rendersystem_t *, int);
 
 extern const vmd_notesystem_t vmd_notesystem_midistd;
 extern const vmd_notesystem_t vmd_notesystem_drums;
@@ -375,28 +365,29 @@ const vmd_notesystem_t *vmd_notesystem_tet(int);
 /* track.c */
 
 struct vmd_track_t {
-	vmd_file_t *file;
-	vmd_bst_t notes;
-	vmd_map_t ctrl[VMD_TCTRLS];
-	int value[VMD_TVALUES];
+	vmd_file_t     *file;
+	vmd_bst_t       notes;
+	vmd_map_t       ctrl[VMD_TCTRLS];
+	int             value[VMD_TVALUES];
 
-	const char *name;
-	int primary_program;
-	const vmd_notesystem_t *notesystem;
+	int             channel_usage[VMD_CHANNELS];
+	vmd_channel_t  *temp_channels;
+
+	const char     *name;
+	int             primary_program;
+	vmd_track_t    *next;
+
+	const vmd_notesystem_t   *notesystem;
 	const vmd_rendersystem_t *rendersystem;
-	vmd_channel_t *temp_channels;
-
-	int channel_usage[VMD_CHANNELS];
-	vmd_track_t *next;
 };
 
 typedef void *(*vmd_note_callback_t)(vmd_note_t *, void *);
 
-void            vmd_track_init(vmd_track_t *, vmd_file_t *, const vmd_notesystem_t *);
-void            vmd_track_fini(vmd_track_t *);
+void vmd_track_init(vmd_track_t *, vmd_file_t *, const vmd_notesystem_t *);
+void vmd_track_fini(vmd_track_t *);
 
-int             vmd_track_get_program(vmd_track_t *);
-void            vmd_track_set_program(vmd_track_t *, int);
+int  vmd_track_get_program(vmd_track_t *);
+void vmd_track_set_program(vmd_track_t *, int);
 
 static inline vmd_track_t *
 vmd_track_create(vmd_file_t *file, const vmd_notesystem_t *ns)
@@ -408,12 +399,12 @@ vmd_track_create(vmd_file_t *file, const vmd_notesystem_t *ns)
 
 VMD_DEFINE_DESTROY(track) // vmd_track_destroy
 
-void *          vmd_track_range(vmd_track_t *, vmd_time_t, vmd_time_t, vmd_note_callback_t, void *);
-vmd_note_t *    vmd_track_rw_range(vmd_track_t *, vmd_time_t, vmd_time_t);
+void *      vmd_track_range(vmd_track_t *, vmd_time_t, vmd_time_t, vmd_note_callback_t, void *);
+vmd_note_t *vmd_track_rw_range(vmd_track_t *, vmd_time_t, vmd_time_t);
 
-vmd_note_t *    vmd_track_insert(vmd_track_t *, vmd_time_t, vmd_time_t, vmd_pitch_t);
-void            vmd_track_erase(vmd_track_t *, vmd_note_t *);
-int             vmd_track_erase_range(vmd_track_t *, vmd_time_t, vmd_time_t, vmd_pitch_t, vmd_pitch_t);
+vmd_note_t *vmd_track_insert(vmd_track_t *, vmd_time_t, vmd_time_t, vmd_pitch_t);
+void        vmd_track_erase(vmd_track_t *, vmd_note_t *);
+int         vmd_track_erase_range(vmd_track_t *, vmd_time_t, vmd_time_t, vmd_pitch_t, vmd_pitch_t);
 
 static inline vmd_note_t *
 vmd_track_note(vmd_bst_node_t *node)

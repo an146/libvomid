@@ -497,6 +497,12 @@ bst_change(bst_t *tree, bst_node_t *node, const void *data)
 	insert_node(tree, node);
 }
 
+/**
+ * Find a node.
+ * @return
+ *   The first node, for which tree->cmp(node->data, data) == 0,
+ *   or NULL if there's no such node.
+ */
 bst_node_t *
 bst_find(bst_t *tree, const void *data)
 {
@@ -508,6 +514,12 @@ bst_find(bst_t *tree, const void *data)
 		return lb;
 }
 
+/**
+ * Find a bound node.
+ * @return
+ *   The first node, for which tree->cmp(node->data, data) >= bound,
+ *   or head if there's no such node.
+ */
 bst_node_t *
 bst_bound(bst_t *tree, const void *data, int bound)
 {
@@ -608,6 +620,12 @@ bst_commit(bst_t *tree)
 	return tree->tip;
 }
 
+/**
+ * Revert tree to the last committed revision.
+ * @return
+ *   same as bst_update().
+ * @see bst_update()
+ */
 bst_node_t *
 bst_revert(bst_t *tree)
 {
@@ -741,6 +759,12 @@ toggle(bst_t *tree, bst_rev_t *rev, bst_node_t **affected)
 	free_erased(tree, rev);
 }
 
+/* Update the tree to another revision.
+ * @return
+ *   slist of nodes that changed in_tree
+ *   you can check in_tree of each node to determine what happened
+ *   example: size_change() in test/bst.c
+ */
 bst_node_t *
 bst_update(bst_t *tree, bst_rev_t *rev)
 {
