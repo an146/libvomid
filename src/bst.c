@@ -1,9 +1,12 @@
 /* (C)opyright 2008 Anton Novikov
  * See LICENSE file for license details.
+ */
+
+/**
+ * @file bst.c
+ * Persistent AVL tree.
  *
- * versioned binary search tree
- *
- * features:
+ * @par Features
  * - snapshots (in terms of revisions, committing and updating, just like in Mercurial SCM)
  *   committing/updating back doesn't change the node pointers.
  *   this is essential, because the intended usage of
@@ -12,13 +15,9 @@
  *   and update back - that's OK. Trees may end up balanced a different way, though.
  * - dynamic data in nodes (used for interval trees).
  *   just like in Cormen book and libstdc++' pbassoc.
- * bugs:
- * - ATM there's *no* way to change the node data in place.
- *   You must do erase&insert (essentially, copy on write).
- *   If you change the node data, the change will propagate on snapshots
- *   (hm, maybe somehow make a feature out of it? :)
+ * @par Bugs
  * - erased nodes are reused only after committing
- * implementation notes:
+ * @par Implementation notes
  * - all write operations are implemented in terms of inserting and erasing.
  *   inserted/erased notes get tracked, and at commit time, data from erased nodes
  *   get bundled and stored in rev. erased nodes go to the free nodes pool.
@@ -500,8 +499,9 @@ bst_change(bst_t *tree, bst_node_t *node, const void *data)
 /**
  * Find a node.
  * @return
- *   The first node, for which tree->cmp(node->data, data) == 0,
- *   or NULL if there's no such node.
+ *   The first node, for which
+ *   \code tree->cmp(node->data, data) == 0 \endcode
+ *   or \c NULL if there's no such node.
  */
 bst_node_t *
 bst_find(bst_t *tree, const void *data)
@@ -517,8 +517,9 @@ bst_find(bst_t *tree, const void *data)
 /**
  * Find a bound node.
  * @return
- *   The first node, for which tree->cmp(node->data, data) >= bound,
- *   or head if there's no such node.
+ *   The first node, for which
+ *   \code tree->cmp(node->data, data) >= bound \endcode
+ *   or \c &tree->head if there's no such node.
  */
 bst_node_t *
 bst_bound(bst_t *tree, const void *data, int bound)
@@ -551,6 +552,12 @@ ie_pack(bst_node_t *head, int in_tree, bst_node_t **pack)
 	}
 }
 
+/**
+ * Commit the tree. If there were no changes since
+ * the last revision, \c tree->tip doesn't change.
+ * @return
+ *   New \c tree->tip.
+ */
 bst_rev_t *
 bst_commit(bst_t *tree)
 {
@@ -621,10 +628,10 @@ bst_commit(bst_t *tree)
 }
 
 /**
- * Revert tree to the last committed revision.
+ * Revert the tree to the last committed revision.
+ * Has same effect as \code bst_update(tree->tip); \endcode
  * @return
- *   same as bst_update().
- * @see bst_update()
+ *   Same as \c bst_update().
  */
 bst_node_t *
 bst_revert(bst_t *tree)
@@ -729,12 +736,14 @@ toggle(bst_t *tree, bst_rev_t *rev, bst_node_t **affected)
 {
 	unfree_erased(tree, rev);
 
+#ifndef DOXYGEN_IGNORE
 #define ADD(node, was) \
 	if (!node->inserted) { \
 		node->was_in_tree = was; \
 		node->inserted = 1; \
 		slist_push(affected, node); \
 	}
+#endif
 	int i;
 	for (i = 0; i < rev->erased_count; i++) {
 		ADD(rev->erased[i], 0);
@@ -759,11 +768,11 @@ toggle(bst_t *tree, bst_rev_t *rev, bst_node_t **affected)
 	free_erased(tree, rev);
 }
 
-/* Update the tree to another revision.
+/**
+ * Update the tree to another revision.
  * @return
- *   slist of nodes that changed in_tree
- *   you can check in_tree of each node to determine what happened
- *   example: size_change() in test/bst.c
+ *   Slist of nodes whose \c in_tree changed.
+ *   You can check \c in_tree of each node to determine what happened.
  */
 bst_node_t *
 bst_update(bst_t *tree, bst_rev_t *rev)
