@@ -2,6 +2,18 @@
 #include <ctype.h>
 #include "vomid_local.h"
 
+notesystem_t
+notesystem_import(const char *fn)
+{
+	FILE *f = fopen(fn, "rb");
+	if (f == NULL)
+		return (notesystem_t){};
+
+	notesystem_t ret = notesystem_import_f(f);
+	fclose(f);
+	return ret;
+}
+
 status_t
 pitch_info(const notesystem_t *ns, pitch_t pitch, midipitch_t *midipitch, int *wheel)
 {

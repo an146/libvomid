@@ -353,6 +353,7 @@ struct vmd_notesystem_t {
 	vmd_pitch_t end_pitch;
 };
 
+vmd_notesystem_t vmd_notesystem_import(const char *);
 vmd_notesystem_t vmd_notesystem_tet(int);
 vmd_notesystem_t vmd_notesystem_midistd(void);
 vmd_bool_t       vmd_notesystem_is_midistd(const vmd_notesystem_t *ns);
