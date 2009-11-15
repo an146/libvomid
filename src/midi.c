@@ -109,18 +109,6 @@ write_pitchwheel(ctrl_info_t *info, int channel, int value, uchar *buf, int *len
 	buf[2] = value / 128;
 }
 
-void
-midi_write_propr(uchar type, uchar *data, int s, uchar *buf, int *len)
-{
-	*len = PROPR_HEADER_SIZE + s;
-	buf[0] = 0xFF;
-	buf[1] = 0x7F;
-	buf[2] = PROPR_HEADER_SIZE - META_HEADER_SIZE + s;
-	memcpy(buf + META_HEADER_SIZE, magic_vomid, sizeof(magic_vomid));
-	buf[META_HEADER_SIZE + sizeof(magic_vomid)] = type;
-	memcpy(buf + PROPR_HEADER_SIZE, data, s);
-}
-
 static inline void
 check_note(note_t *note)
 {
@@ -154,28 +142,70 @@ midi_write_noteoff(note_t *note, uchar *buf, int *len)
 }
 
 void
-midi_write_notesystem(const notesystem_t *ns, uchar *buf, int *len)
+midi_write_meta(uchar type, const uchar *data, int len, uchar *buf, int *ev_len)
 {
-	assert(ns->id >= 0);
-	midi_write_propr(PROPR_NOTESYSTEM, (uchar []){ns->id}, 1, buf, len);
-}
-
-void
-midi_write_pitch(pitch_t pitch, uchar *buf, int *len)
-{
-	assert(pitch >= 0);
-	midi_write_propr(PROPR_PITCH, (uchar []){pitch / 0x100, pitch % 0x100}, 2, buf, len);
-}
-
-//TODO: varlen
-void
-midi_write_meta(int type, const uchar *data, int len, uchar *buf, int *ev_len)
-{
+	assert(len < 128);
 	*ev_len = 3 + len;
 	buf[0] = 0xFF;
 	buf[1] = type;
 	buf[2] = len;
 	memcpy(buf + 3, data, len);
+}
+
+void
+midi_fwrite_varlen(FILE *out, time_t time){
+	assert(time >= 0);
+	if (time > 0) {
+		uchar buf[32];
+		uchar *s = buf + sizeof(buf);
+		uchar *e = s;
+
+		while (time != 0) {
+			*--s = time % 0x80;
+			if (s != e - 1)
+				*s += 0x80;
+			time /= 0x80;
+		}
+		fwrite(s, 1, e - s, out);
+	} else
+		fputc(0, out);
+}
+
+void
+midi_fwrite_meta_header(FILE *out, uchar type, int len)
+{
+	fputc(0xFF, out);
+	fputc(type, out);
+	midi_fwrite_varlen(out, len);
+}
+
+void
+midi_fwrite_meta(FILE *out, uchar type, const uchar *data, int len)
+{
+	midi_fwrite_meta_header(out, type, len);
+	fwrite(data, 1, len, out);
+}
+
+void
+midi_fwrite_propr(FILE *out, uchar type, uchar *data, int s)
+{
+	midi_fwrite_meta_header(out, META_PROPRIETARY, PROPR_HEADER_SIZE + s);
+	fwrite(magic_vomid, 1, sizeof(magic_vomid), out);
+	fputc(type, out);
+	fwrite(data, 1, s, out);
+}
+
+void
+midi_fwrite_pitch(FILE *out, pitch_t pitch)
+{
+	assert(pitch >= 0);
+	midi_fwrite_propr(out, PROPR_PITCH, (uchar []){pitch / 0x100, pitch % 0x100}, 2);
+}
+
+void
+midi_fwrite_notesystem(FILE *out, const notesystem_t *ns)
+{
+	midi_fwrite_propr(out, PROPR_NOTESYSTEM, (uchar *)ns->scala, strlen(ns->scala));
 }
 
 ctrl_info_t tvalue_info[TVALUES] = {

@@ -214,3 +214,12 @@ file_measures(file_t *file, time_t beg, time_t end, measure_clb_t clb, void *arg
 		i = bst_next(i);
 	}
 }
+
+int
+track_idx(const track_t *track)
+{
+	for (int i = 0; i < track->file->tracks; i++)
+		if (track->file->track[i] == track)
+			return i;
+	return -1;
+}

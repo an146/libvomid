@@ -1,37 +1,31 @@
 Tempo:0 461538
 Time Signature:0 515
 Track 0: Name:Bass
-Track 0: Notesystem:-1
 Track 0: Volume:127
 Track 0: Pan:64
 Track 0: Balance:
 Track 0: Expression:
 Track 1: Name:Guitar 1
-Track 1: Notesystem:-1
 Track 1: Volume:95
 Track 1: Pan:64
 Track 1: Balance:
 Track 1: Expression:
 Track 2: Name:Guitar 2
-Track 2: Notesystem:-1
 Track 2: Volume:96
 Track 2: Pan:64
 Track 2: Balance:
 Track 2: Expression:
 Track 3: Name:Guitar 2 (solo)
-Track 3: Notesystem:-1
 Track 3: Volume:96
 Track 3: Pan:64
 Track 3: Balance:
 Track 3: Expression:
 Track 4: Name:Vocal
-Track 4: Notesystem:-1
 Track 4: Volume:89
 Track 4: Pan:64
 Track 4: Balance:
 Track 4: Expression:
 Track 5: Name:Drums
-Track 5: Notesystem:0
 Track 5: Volume:111
 Track 5: Pan:64
 Track 5: Balance:

@@ -1,4 +1,4 @@
-/* (C)opyright 2008 Anton Novikov
+/* (C)opyright 2008 Anton N/home/anton/vomid/libvomid/include/vomid_local.h
  * See LICENSE file for license details.
  *
  * vomid_local.h
@@ -50,21 +50,25 @@ enum {
 
 /* midi.c */
 
-const uchar vmd_magic_mthd[4];
-const uchar vmd_magic_mtrk[4];
-const uchar vmd_magic_vomid[4];
+extern const uchar vmd_magic_mthd[4];
+extern const uchar vmd_magic_mtrk[4];
+extern const uchar vmd_magic_vomid[4];
 
-void vmd_midi_write_propr(uchar type, uchar *data, int s, uchar *buf, int *len);
 void vmd_midi_write_noteon(note_t *note, uchar *buf, int *len);
 void vmd_midi_write_noteoff(note_t *note, uchar *buf, int *len);
-void vmd_midi_write_notesystem(const notesystem_t *, uchar *buf, int *len);
-void vmd_midi_write_pitch(pitch_t, uchar *buf, int *len);
-void vmd_midi_write_meta(int type, const uchar *data, int len, uchar *buf, int *ev_len);
+void vmd_midi_write_meta(uchar type, const uchar *data, int len, uchar *buf, int *ev_len);
 
-const uchar vmd_midi_eot[3];
+void vmd_midi_fwrite_varlen(FILE *out, time_t time);
+void vmd_midi_fwrite_meta_header(FILE *out, uchar type, int len);
+void vmd_midi_fwrite_meta(FILE *out, uchar type, const uchar *data, int len);
+void vmd_midi_fwrite_propr(FILE *out, uchar type, uchar *data, int s);
+void vmd_midi_fwrite_notesystem(FILE *out, const notesystem_t *);
+void vmd_midi_fwrite_pitch(FILE *out, pitch_t);
 
-#define VMD_META_HEADER_SIZE 3
-#define VMD_PROPR_HEADER_SIZE (3 + sizeof(vmd_magic_vomid) + 1)
+extern const uchar vmd_midi_eot[3];
+
+#define META_HEADER_SIZE 3
+#define PROPR_HEADER_SIZE (sizeof(vmd_magic_vomid) + 1)
 
 /* preprocessor utils */
 
@@ -116,21 +120,16 @@ void *          vmd_stack_pop(vmd_stack_t *);
 
 /* note.c */
 
-typedef vmd_status_t (*vmd_pitch_info_t)(const vmd_notesystem_t *, vmd_pitch_t, vmd_midipitch_t *, int *);
-
-struct vmd_notesystem_t {
-	vmd_chanmask_t chanmask;
-	vmd_pitch_info_t pitch_info;
-	int id;
-	vmd_rendersystem_t default_rendersystem;
-};
-
 vmd_note_t *    vmd_note_insert(const vmd_note_t *note);
 void            vmd_note_erase(vmd_note_t *note);
 void            vmd_note_set_channel(vmd_note_t *note, vmd_channel_t *);
 void            vmd_note_set_pitch(vmd_note_t *note, vmd_pitch_t);
 
 int             vmd_note_cmp(const vmd_note_t *, const vmd_note_t *);
+
+/* notesystem.c */
+
+vmd_notesystem_t vmd_notesystem_import_f(FILE *);
 
 /* channel.c */
 
@@ -196,11 +195,12 @@ struct vmd_file_rev_t {
 
 /* play.c */
 
-typedef void (*vmd_tevent_clb_t)(int track, uchar *event, size_t len, void *arg);
+typedef void         (*vmd_tevent_clb_t)(int track, uchar *event, size_t len, void *arg);
 typedef vmd_status_t (*vmd_dtime_clb_t)(vmd_time_t delay, void *arg);
+typedef void         (*vmd_note_clb_t)(const note_t *note, void *arg);
 
-vmd_status_t        vmd_file_play_(vmd_file_t *file, time_t time, vmd_tevent_clb_t voice_clb,
-						vmd_dtime_clb_t dtime_clb, void *arg);
+vmd_status_t         vmd_file_play_(vmd_file_t *file, vmd_time_t time, vmd_tevent_clb_t voice_clb,
+						vmd_dtime_clb_t dtime_clb, vmd_note_clb_t note_clb, void *arg);
 
 /* bst.c */
 

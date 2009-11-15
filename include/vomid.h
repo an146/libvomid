@@ -344,56 +344,58 @@ struct vmd_note_t {
 
 void vmd_note_isolate(vmd_note_t *);
 
-enum {
-	VMD_LEVEL_NORMAL,
-	VMD_LEVEL_LINE,
-	VMD_LEVEL_OCTAVE_LINE
+/* notesystem.c */
+
+struct vmd_notesystem_t {
+	int size;
+	float *pitches;
+	char *scala;
+	vmd_pitch_t end_pitch;
 };
 
-struct vmd_rendersystem_t {
-	int levels;
-	int (*level_style)(int);
-	int (*pitch2level)(vmd_pitch_t);
-};
+vmd_notesystem_t vmd_notesystem_tet(int);
+vmd_notesystem_t vmd_notesystem_midistd(void);
+vmd_bool_t       vmd_notesystem_is_midistd(const vmd_notesystem_t *ns);
+void             vmd_notesystem_fini(vmd_notesystem_t ns);
 
-vmd_pitch_t vmd_rendersystem_level2pitch(const vmd_rendersystem_t *, int);
+vmd_status_t     vmd_pitch_info(const vmd_notesystem_t *ns, vmd_pitch_t pitch,
+		vmd_midipitch_t *midipitch, int *wheel);
 
-extern const vmd_notesystem_t vmd_notesystem_midistd;
-extern const vmd_notesystem_t vmd_notesystem_drums;
-const vmd_notesystem_t *vmd_notesystem_tet(int);
+int              vmd_notesystem_pitch2level(const vmd_notesystem_t *, vmd_pitch_t p);
+vmd_pitch_t      vmd_notesystem_level2pitch(const vmd_notesystem_t *, int);
+int              vmd_notesystem_levels(const vmd_notesystem_t *);
 
 /* track.c */
 
 struct vmd_track_t {
-	vmd_file_t     *file;
-	vmd_bst_t       notes;
-	vmd_map_t       ctrl[VMD_TCTRLS];
-	int             value[VMD_TVALUES];
+	vmd_file_t      *file;
+	vmd_bst_t        notes;
+	vmd_notesystem_t notesystem;
+	vmd_map_t        ctrl[VMD_TCTRLS];
+	int              value[VMD_TVALUES];
 
-	int             channel_usage[VMD_CHANNELS];
-	vmd_channel_t  *temp_channels;
+	vmd_chanmask_t   chanmask;
+	int              channel_usage[VMD_CHANNELS];
+	vmd_channel_t   *temp_channels;
+	vmd_track_t     *next;
 
-	const char     *name;
-	int             primary_program;
-	vmd_track_t    *next;
-
-	const vmd_notesystem_t   *notesystem;
-	const vmd_rendersystem_t *rendersystem;
+	const char      *name;
+	int              primary_program;
 };
 
 typedef void *(*vmd_note_callback_t)(vmd_note_t *, void *);
 
-void vmd_track_init(vmd_track_t *, vmd_file_t *, const vmd_notesystem_t *);
+void vmd_track_init(vmd_track_t *, vmd_file_t *, vmd_chanmask_t);
 void vmd_track_fini(vmd_track_t *);
 
 int  vmd_track_get_program(vmd_track_t *);
 void vmd_track_set_program(vmd_track_t *, int);
 
 static inline vmd_track_t *
-vmd_track_create(vmd_file_t *file, const vmd_notesystem_t *ns)
+vmd_track_create(vmd_file_t *file, vmd_chanmask_t chanmask)
 {
 	vmd_track_t *ret = (vmd_track_t *)malloc(sizeof(*ret));
-	vmd_track_init(ret, file, ns);
+	vmd_track_init(ret, file, chanmask);
 	return ret;
 }
 
@@ -414,6 +416,8 @@ vmd_track_note(vmd_bst_node_t *node)
 
 vmd_bool_t      vmd_track_is_drums(const vmd_track_t *);
 vmd_time_t      vmd_track_length(const vmd_track_t *);
+int             vmd_track_idx(const vmd_track_t *);
+void            vmd_track_set_notesystem(vmd_track_t *, vmd_notesystem_t);
 
 /* hal.c */
 

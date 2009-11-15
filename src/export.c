@@ -13,7 +13,7 @@
 #define LAST_TRACK 1
 
 #define ZERO_DTIME 1
-#define SHA (PROPR_HEADER_SIZE + SHA1_SIZE)
+#define SHA (META_HEADER_SIZE + PROPR_HEADER_SIZE + SHA1_SIZE)
 
 #define MIDI_FORMAT 1
 
@@ -26,25 +26,6 @@ typedef struct export_ctx_t {
 	file_t *file;
 	track_export_ctx_t track[MAX_TRACKS + NULL_TRACK];
 } export_ctx_t;
-
-static void
-write_varlen(FILE *fbuf, time_t time){
-	assert(time >= 0);
-	if (time > 0) {
-		uchar buf[32];
-		uchar *s = buf + sizeof(buf);
-		uchar *e = s;
-
-		while (time != 0) {
-			*--s = time % 0x80;
-			if (s != e - 1)
-				*s += 0x80;
-			time /= 0x80;
-		}
-		fwrite(s, 1, e - s, fbuf);
-	} else
-		fputc(0, fbuf);
-}
 
 static void
 write(FILE *out, const uchar *buf, size_t size, SHA_CTX *sha_ctx)
@@ -88,7 +69,7 @@ tevent_clb(int track, unsigned char *event, size_t len, void *arg)
 	export_ctx_t *ctx = arg;
 	track_export_ctx_t *tctx = &ctx->track[track + NULL_TRACK];
 
-	write_varlen(tctx->fbuf, tctx->dtime);
+	midi_fwrite_varlen(tctx->fbuf, tctx->dtime);
 	fwrite(event, 1, len, tctx->fbuf);
 	tctx->dtime = 0;
 }
@@ -103,25 +84,29 @@ dtime_clb(time_t dtime, void *arg)
 	return OK;
 }
 
-static bool_t
-implicit_notesystem(track_t *track)
+static void
+note_clb(const note_t *note, void *arg)
 {
-	return track->notesystem == &notesystem_midistd ||
-		(track->notesystem == &notesystem_drums && !bst_empty(&track->notes));
+	export_ctx_t *ctx = arg;
+	track_export_ctx_t *tctx = &ctx->track[track_idx(note->track) + NULL_TRACK];
+	if (!notesystem_is_midistd(&note->track->notesystem)) {
+		midi_fwrite_varlen(tctx->fbuf, tctx->dtime);
+		midi_fwrite_pitch(tctx->fbuf, note->pitch);
+		tctx->dtime = 0;
+	}
 }
 
 static void
 write_notesystems(export_ctx_t *ctx)
 {
-	for (int i = 0; i < ctx->file->tracks; i++)
-		if (!implicit_notesystem(ctx->file->track[i])) {
-			uchar buf[32];
-			int buf_len;
-			midi_write_notesystem(ctx->file->track[i]->notesystem, buf, &buf_len);
-
-			write_varlen(ctx->track[i + NULL_TRACK].fbuf, 0);
-			fwrite(buf, 1, buf_len, ctx->track[i + NULL_TRACK].fbuf);
+	for (int i = 0; i < ctx->file->tracks; i++) {
+		const notesystem_t *ns = &ctx->file->track[i]->notesystem;
+		if (!notesystem_is_midistd(ns)) {
+			FILE *f = ctx->track[i + NULL_TRACK].fbuf;
+			midi_fwrite_varlen(f, 0);
+			midi_fwrite_notesystem(f, ns);
 		}
+	}
 }
 
 static void
@@ -144,7 +129,7 @@ file_export_f(file_t *file, FILE *out)
 	}
 
 	write_notesystems(&ctx);
-	file_play_(file, 0, tevent_clb, dtime_clb, &ctx);
+	file_play_(file, 0, tevent_clb, dtime_clb, note_clb, &ctx);
 
 	SHA_CTX sha_ctx;
 	SHA1_Init(&sha_ctx);
@@ -167,14 +152,9 @@ file_export_f(file_t *file, FILE *out)
 
 		if (write_sha) {
 			uchar sha[SHA1_SIZE];
-			uchar buf[SHA];
-			int s;
-
 			SHA1_Final(sha, &sha_ctx);
-			midi_write_propr(PROPR_SHA, sha, sizeof(sha), buf, &s);
-			assert(s == sizeof(buf));
-			write_varlen(out, 0);
-			fwrite(buf, 1, s, out);
+			midi_fwrite_varlen(out, 0);
+			midi_fwrite_propr(out, PROPR_SHA, sha, sizeof(sha));
 		}
 		write_eot(out, &sha_ctx);
 	}

@@ -282,8 +282,14 @@ m_vomid(uchar *data, int len, import_ctx_t *ctx)
 	len--;
 	switch (*data++) {
 	case PROPR_NOTESYSTEM:
-		if (len >= 1 && ctx->track->notesystem == NULL)
-			ctx->track->notesystem = notesystem_tet(*data);
+		if (notesystem_is_midistd(&ctx->track->notesystem)) {
+			FILE *f = tmpfile();
+			fwrite(data, 1, len, f);
+			notesystem_t ns = notesystem_import_f(f);
+			if (ns.pitches != NULL)
+				track_set_notesystem(ctx->track, ns);
+			fclose(f);
+		}
 		break;
 	case PROPR_PITCH:
 		if (len >= 2 && ctx->pitch < 0)
@@ -366,7 +372,7 @@ meta(int type, uchar *data, int len, import_ctx_t *ctx)
 static void
 import_track(file_t *file, uchar *chunk, int len, import_ctx_t *ctx)
 {
-	track_t *track = track_create(file, NULL); //TODO: deduce the notesystem
+	track_t *track = track_create(file, 0);
 	if (track == NULL)
 		return;
 	file->track[file->tracks++] = track;
@@ -438,13 +444,10 @@ import_track(file_t *file, uchar *chunk, int len, import_ctx_t *ctx)
 	}
 eot:
 	m_eot(NULL, 0, ctx);
-	if (track->notesystem == NULL) {
-		if (ctx->drums > 0)
-			track->notesystem = &notesystem_drums;
-		else
-			track->notesystem = &notesystem_midistd;
-	}
-	track->rendersystem = &track->notesystem->default_rendersystem;
+	if (ctx->drums > 0)
+		track->chanmask = CHANMASK_DRUMS;
+	else
+		track->chanmask = CHANMASK_NODRUMS;
 }
 
 static int
@@ -477,8 +480,8 @@ start:
 	*_chunk = chunk;
 	*_len = len;
 	if (last) {
-		len -= ZERO_DTIME + PROPR_HEADER_SIZE + SHA1_SIZE; /* sha */
-		len -= ZERO_DTIME + META_HEADER_SIZE;              /* eot */
+		len -= ZERO_DTIME + META_HEADER_SIZE + PROPR_HEADER_SIZE + SHA1_SIZE; /* sha */
+		len -= ZERO_DTIME + META_HEADER_SIZE;                                 /* eot */
 	}
 	if (len >= 0)
 		SHA1_Update(sha_ctx, chunk, len);

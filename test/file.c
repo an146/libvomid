@@ -19,19 +19,20 @@ TEST("file")
 	int i, j;
 	note_t *note;
 
-	const notesystem_t *ns[] = {
-		notesystem_tet(17),
-		&notesystem_midistd,
-		&notesystem_drums
+	const chanmask_t cm[] = {
+		CHANMASK_NODRUMS,
+		CHANMASK_NODRUMS,
+		CHANMASK_DRUMS,
 	};
 	for (i = 0; i < 3; i++) {
 		char buf[16];
 		sprintf(buf, "Track %i", i + 1);
 
-		file.track[i] = track_create(&file, ns[i]);
+		file.track[i] = track_create(&file, cm[i]);
 		file.track[i]->name = file_copy_string(&file, buf);
 		file.tracks++;
 	}
+	track_set_notesystem(file.track[0], notesystem_tet(17));
 
 	map_set(&file.ctrl[FCTRL_TIMESIG], 0, TIMESIG(3, 4));
 	map_set(&file.ctrl[FCTRL_TEMPO], 0, TEMPO_BPM(240));

@@ -81,7 +81,7 @@ track_rw_range(track_t *track, time_t s, time_t e)
 }
 
 void
-track_init(track_t *track, file_t *file, const notesystem_t *notesystem)
+track_init(track_t *track, file_t *file, chanmask_t chanmask)
 {
 	track->file = file;
 	track->next = file->tracks_list;
@@ -93,8 +93,8 @@ track_init(track_t *track, file_t *file, const notesystem_t *notesystem)
 		map_init(&track->ctrl[i], tctrl_info[i].default_value);
 	track->name = "";
 	track->primary_program = -1;
-	track->notesystem = notesystem;
-	track->rendersystem = &notesystem->default_rendersystem;
+	track->notesystem = notesystem_midistd();
+	track->chanmask = chanmask;
 	track->temp_channels = NULL;
 	memset(track->channel_usage, 0, sizeof(track->channel_usage));
 }
@@ -109,6 +109,7 @@ track_fini(track_t *track)
 		next = i->next;
 		channel_destroy(i);
 	}
+	notesystem_fini(track->notesystem);
 }
 
 static void *
@@ -249,7 +250,7 @@ track_flatten(track_t *track)
 	int i;
 
 	for (i = 0; i < CHANNELS; i++)
-		if ((track->notesystem->chanmask & (1 << i)) != 0)
+		if ((track->chanmask & (1 << i)) != 0)
 			channel[channels++] = i;
 	/* gnome sort :) */
 	for (i = 0; i < channels; )
@@ -318,12 +319,6 @@ track_set_program(track_t *track, int p){
 	}
 }
 
-bool_t
-track_is_drums(const track_t *track)
-{
-	return track->notesystem == &notesystem_drums;
-}
-
 time_t
 track_length(const track_t *track)
 {
@@ -331,4 +326,11 @@ track_length(const track_t *track)
 		return 0;
 	else
 		return max_off(bst_root(&track->notes));
+}
+
+void
+track_set_notesystem(track_t *track, notesystem_t ns)
+{
+	notesystem_fini(track->notesystem);
+	track->notesystem = ns;
 }

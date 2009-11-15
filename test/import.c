@@ -62,7 +62,6 @@ TEST("import/ctrl")
 	}
 	for (i = 0; i < file.tracks; i++) {
 		printf("Track %i: Name:%s\n", i, file.track[i]->name);
-		printf("Track %i: Notesystem:%i\n", i, file.track[i]->notesystem->id);
 		for (j = 0; j < TVALUES; j++) {
 			printf("Track %i: %s:", i, tvalue_info[j].name);
 			printf("%i\n", file.track[i]->value[j]);

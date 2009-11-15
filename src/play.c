@@ -33,6 +33,7 @@ struct ctrl_ctx_t {
 struct play_ctx_t {
 	file_t *file;
 	tevent_clb_t tevent_clb;
+	note_clb_t note_clb;
 	void *arg;
 
 	stack_t ev_pool;
@@ -205,11 +206,8 @@ write_noteon(event_t *ev, uchar *buf, int *len, play_ctx_t *ctx)
 	} else
 		assert(prev_owner == ev->track);
 
-	if (note->track->notesystem->id > 0) {
-		midi_write_pitch(note->pitch, buf, len);
-		ctx->tevent_clb(ev->track, buf, *len, ctx->arg);
-	}
-
+	if (ctx->note_clb)
+		ctx->note_clb(note, ctx->arg);
 	midi_write_noteon(note, buf, len);
 	ctx->channel_notes[channel]++;
 
@@ -262,12 +260,14 @@ push_map(play_ctx_t *ctx, event_t *ev, bst_t *bst, time_t time)
 
 //TODO: tctrls
 status_t
-file_play_(file_t *file, time_t time, tevent_clb_t tevent_clb, dtime_clb_t dtime_clb, void *arg)
+file_play_(file_t *file, time_t time, tevent_clb_t tevent_clb,
+		dtime_clb_t dtime_clb, note_clb_t note_clb, void *arg)
 {
 	status_t ret = OK;
 	play_ctx_t ctx = {
 		.file = file,
 		.tevent_clb = tevent_clb,
+		.note_clb = note_clb,
 		.arg = arg,
 		.events = 0
 	};
@@ -396,5 +396,5 @@ file_play(file_t *file, time_t time, event_clb_t event_clb, delay_clb_t delay_cl
 		.delay_clb = delay_clb,
 		.arg = arg
 	};
-	return file_play_(file, time, tevent_clb, dtime_clb, &args);
+	return file_play_(file, time, tevent_clb, dtime_clb, NULL, &args);
 }
