@@ -119,6 +119,7 @@ extern vmd_ctrl_info_t vmd_cctrl_info[VMD_CCTRLS];
 extern const char *vmd_gm_instr_name[VMD_PROGRAMS];
 
 void vmd_notes_off(void);
+void vmd_reset_output(void);
 
 /* bst.c */
 

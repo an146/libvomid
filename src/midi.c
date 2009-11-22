@@ -209,8 +209,8 @@ midi_fwrite_notesystem(FILE *out, const notesystem_t *ns)
 }
 
 ctrl_info_t tvalue_info[TVALUES] = {
-	{"Volume", 100, 7, -1, NULL, write_ctrl},
-	{"Pan", 64, 10, -1, NULL, write_ctrl},
+	{"Volume", 100, CTRL_VOLUME, -1, NULL, write_ctrl},
+	{"Pan", 64, CTRL_PAN, -1, NULL, write_ctrl},
 	//{"Track Name", NULL, -1, META_TRACKNAME, read_text, write_text},
 };
 
@@ -220,8 +220,8 @@ ctrl_info_t fctrl_info[FCTRLS] = {
 };
 
 ctrl_info_t tctrl_info[TCTRLS] = {
-	{"Balance", 64, 8, -1, NULL, write_ctrl},
-	{"Expression", 127, 11, -1, NULL, write_ctrl},
+	{"Balance", 64, CTRL_BALANCE, -1, NULL, write_ctrl},
+	{"Expression", 127, CTRL_EXPRESSION, -1, NULL, write_ctrl},
 };
 
 ctrl_info_t cctrl_info[CCTRLS] = {
@@ -364,6 +364,16 @@ void
 notes_off()
 {
 	for (int i = 0; i < CHANNELS; i++)
-		output((uchar []){VOICE_CONTROLLER + i, 123, 0}, 3);
+		output((uchar []){VOICE_CONTROLLER + i, CTRL_NOTES_OFF, 0}, 3);
+	flush_output();
+}
+
+void
+reset_output()
+{
+	for (int i = 0; i < CHANNELS; i++) {
+		output((uchar []){VOICE_CONTROLLER + i, CTRL_CONTROLLERS_OFF, 0}, 3);
+		output((uchar []){VOICE_PROGRAM + i, 0}, 2);
+	}
 	flush_output();
 }
