@@ -209,6 +209,8 @@ static void
 move(note_t *note, channel_t *channel)
 {
 	note_set_channel(note, channel);
+	for (int i = 0; i < CCTRLS; i++)
+		map_copy(&note->channel->ctrl[i], note->on_time, note->off_time, &channel->ctrl[i], note->on_time);
 }
 
 //TODO: optimize
