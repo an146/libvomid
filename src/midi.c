@@ -229,7 +229,7 @@ ctrl_info_t cctrl_info[CCTRLS] = {
 	{"Pitch Wheel", 0, -1, -1, NULL, write_pitchwheel},
 };
 
-const char *gm_instr_name[PROGRAMS] = {
+const char *gm_program_name[PROGRAMS] = {
 	"Acoustic Grand Piano",
 	"Bright Acoustic Piano",
 	"Electric Grand Piano",
