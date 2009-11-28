@@ -281,6 +281,7 @@ track_commit(track_t *track, track_rev_t *rev)
 		rev->ctrl[i] = bst_commit(&track->ctrl[i].bst);
 	memcpy(rev->value, track->value, sizeof(rev->value));
 	rev->name = track->name;
+	rev->primary_program = track->primary_program;
 }
 
 void
@@ -295,6 +296,7 @@ track_update(track_t *track, track_rev_t *rev)
 		bst_update(&track->ctrl[i].bst, rev->ctrl[i]);
 	memcpy(track->value, rev->value, sizeof(track->value));
 	track->name = rev->name;
+	track->primary_program = rev->primary_program;
 }
 
 int

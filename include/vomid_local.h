@@ -183,6 +183,7 @@ struct vmd_track_rev_t {
 	int value[VMD_TVALUES];
 
 	const char *name;
+	int primary_program;
 };
 
 vmd_status_t        vmd_track_flatten(vmd_track_t *);
