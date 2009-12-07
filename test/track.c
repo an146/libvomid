@@ -61,10 +61,10 @@ TEST("track/range")
 				} else
 					note->mark = 0;
 			}
-			track_range(track, range_l, range_r, note_clb, &count);
+			track_for_range(track, range_l, range_r, note_clb, &count);
 			ASSERT_EQ_INT(count, 0);
 		}
-		track_erase_range(track, 0, track_length(track), 0, MAX_PITCH);
+		erase_notes(track_range(track, 0, track_length(track), 0, MAX_PITCH));
 		ASSERT(bst_empty(&track->notes));
 	}
 }

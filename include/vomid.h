@@ -343,7 +343,9 @@ struct vmd_note_t {
 	vmd_note_t     *next; // for destructive operations on ranges
 };
 
-void vmd_note_isolate(vmd_note_t *);
+void vmd_isolate_note(vmd_note_t *);
+void vmd_erase_note(vmd_note_t *);
+int  vmd_erase_notes(vmd_note_t *);
 
 /* notesystem.c */
 
@@ -403,12 +405,9 @@ vmd_track_create(vmd_file_t *file, vmd_chanmask_t chanmask)
 
 VMD_DEFINE_DESTROY(track) // vmd_track_destroy
 
-void *      vmd_track_range(vmd_track_t *, vmd_time_t, vmd_time_t, vmd_note_callback_t, void *);
-vmd_note_t *vmd_track_rw_range(vmd_track_t *, vmd_time_t, vmd_time_t);
-
+void *      vmd_track_for_range(vmd_track_t *, vmd_time_t, vmd_time_t, vmd_note_callback_t, void *);
+vmd_note_t *vmd_track_range(vmd_track_t *, vmd_time_t, vmd_time_t, vmd_pitch_t, vmd_pitch_t);
 vmd_note_t *vmd_track_insert(vmd_track_t *, vmd_time_t, vmd_time_t, vmd_pitch_t);
-void        vmd_track_erase(vmd_track_t *, vmd_note_t *);
-int         vmd_track_erase_range(vmd_track_t *, vmd_time_t, vmd_time_t, vmd_pitch_t, vmd_pitch_t);
 
 static inline vmd_note_t *
 vmd_track_note(vmd_bst_node_t *node)

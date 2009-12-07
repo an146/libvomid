@@ -65,7 +65,7 @@ TEST("file")
 	/* screwing up everything... */
 	for (i = 0; i < file.tracks; i++) {
 		while (!bst_empty(&file.track[i]->notes))
-			track_erase(file.track[i], track_note(bst_root(&file.track[i]->notes)));
+			erase_note(track_note(bst_root(&file.track[i]->notes)));
 		file.track[i]->name = "";
 	}
 	for (i = 0; i < FCTRLS; i++)
@@ -90,7 +90,7 @@ TEST("file")
 	ASSERT(file.track[0]->channel_usage[0] == 19);
 	ASSERT(file.track[0]->channel_usage[2] == 1);
 
-	note_isolate(xnote);
+	isolate_note(xnote);
 	prog(xnote, DISTORTION);
 	file_flatten(&file);
 	ASSERT(xnote->channel == &file.channel[2]);

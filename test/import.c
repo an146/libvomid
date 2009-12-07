@@ -43,7 +43,7 @@ TEST("import/notes")
 		if (!bst_empty(notes)) {
 			note_t *last = (note_t *)bst_prev(bst_end(notes))->data;
 
-			track_range(track, min_off - 1, last->on_time + 1, clb, &nnotes);
+			track_for_range(track, min_off - 1, last->on_time + 1, clb, &nnotes);
 		}
 
 		ASSERT_EQ_INT(nnotes, 0);

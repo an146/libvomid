@@ -7,7 +7,7 @@
 #include "vomid_local.h"
 
 note_t *
-note_insert(const note_t *note)
+insert_note(const note_t *note)
 {
 	bst_node_t *t_node = bst_insert(&note->track->notes, note);
 	note_t *ret = (note_t *)t_node->data;
@@ -20,10 +20,21 @@ note_insert(const note_t *note)
 }
 
 void
-note_erase(note_t *note)
+erase_note(note_t *note)
 {
 	note_set_channel(note, NULL);
 	bst_erase(&note->track->notes, bst_node(note));
+}
+
+int
+erase_notes(note_t *note)
+{
+	int ret = 0;
+	for (; note != NULL; note = note->next) {
+		erase_note(note);
+		ret++;
+	}
+	return ret;
 }
 
 void
@@ -47,7 +58,7 @@ note_set_channel(note_t *note, channel_t *channel)
 }
 
 void
-note_isolate(note_t *note)
+isolate_note(note_t *note)
 {
 	channel_t *tc = track_temp_channel(note->track, note->on_time, note->off_time);
 	note_set_channel(note, tc);
@@ -71,7 +82,7 @@ note_set_pitch(note_t *note, pitch_t pitch)
 	n1.pitch = pitch;
 	pitch_info(&note->track->notesystem, pitch, &n1.midipitch, &pw);
 
-	note_isolate(note);
+	isolate_note(note);
 	bst_change(&note->track->notes, bst_node(note), &n1);
 	map_set_range(&note->channel->ctrl[CCTRL_PITCHWHEEL], note->on_time, note->off_time, pw);
 }

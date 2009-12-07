@@ -128,8 +128,7 @@ void *          vmd_stack_pop(vmd_stack_t *);
 
 /* note.c */
 
-vmd_note_t *    vmd_note_insert(const vmd_note_t *note);
-void            vmd_note_erase(vmd_note_t *note);
+vmd_note_t *    vmd_insert_note(const vmd_note_t *note);
 void            vmd_note_set_channel(vmd_note_t *note, vmd_channel_t *);
 void            vmd_note_set_pitch(vmd_note_t *note, vmd_pitch_t);
 

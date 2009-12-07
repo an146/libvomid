@@ -92,9 +92,9 @@ off_clb(note_t *note, void *_arg)
 		n.off_time = arg->time;
 		n.off_vel = arg->vel;
 
-		note_erase(note);
+		erase_note(note);
 		if (n.on_time != n.off_time)
-			note_insert(&n)->n_offed = arg->offed;
+			insert_note(&n)->n_offed = arg->offed;
 	}
 	return arg;
 }
@@ -120,7 +120,7 @@ off(channel_t *channel, midipitch_t midipitch, uchar vel, int offed, import_ctx_
 		};
 
 		if (n.on_time != n.off_time)
-			note_insert(&n)->n_offed = offed;
+			insert_note(&n)->n_offed = offed;
 
 		on->vel = 0;
 	} else {

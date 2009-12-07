@@ -58,26 +58,37 @@ upd(bst_node_t *node)
 DEFINE_RANGE_FN
 
 void *
-track_range(track_t *track, time_t s, time_t e, note_callback_t clb, void *arg)
+track_for_range(track_t *track, time_t s, time_t e, note_callback_t clb, void *arg)
 {
 	return range(&track->notes, s, e, clb, arg);
 }
 
+struct range_arg {
+	note_t *list;
+	pitch_t p_beg, p_end;
+};
+
 static void *
-rw_range_clb(note_t *note, void *arg)
+range_clb(note_t *note, void *_arg)
 {
-	note_t **list = arg;
-	note->next = *list;
-	*list = note;
+	struct range_arg *arg = _arg;
+	if (arg->p_beg <= note->pitch && note->pitch < arg->p_end) {
+		note->next = arg->list;
+		arg->list = note;
+	}
 	return NULL;
 }
 
 note_t *
-track_rw_range(track_t *track, time_t s, time_t e)
+track_range(track_t *track, time_t s, time_t e, pitch_t p_beg, pitch_t p_end)
 {
-	note_t *ret = NULL;
-	track_range(track, s, e, rw_range_clb, &ret);
-	return ret;
+	struct range_arg arg = {
+		.list = NULL,
+		.p_beg = p_beg,
+		.p_end = p_end
+	};
+	track_for_range(track, s, e, range_clb, &arg);
+	return arg.list;
 }
 
 void
@@ -152,29 +163,10 @@ track_insert(track_t *track, time_t beg, time_t end, pitch_t pitch)
 		.off_vel = DEFAULT_VELOCITY,
 	};
 
-	note_t *note = note_insert(&n);
+	note_t *note = insert_note(&n);
 	note_set_pitch(note, pitch);
 	map_set_range(&note->channel->ctrl[CCTRL_PROGRAM], beg, end, track_get_program(track));
 	return note;
-}
-
-void
-track_erase(track_t *track, note_t *note)
-{
-	note_erase(note);
-}
-
-int
-track_erase_range(track_t *track, time_t t_beg, time_t t_end, pitch_t p_beg, pitch_t p_end)
-{
-	int ret = 0;
-	note_t *i = track_rw_range(track, t_beg, t_end);
-	for (; i != NULL; i = i->next)
-		if (p_beg <= i->pitch && i->pitch < p_end) {
-			track_erase(i->track, i);
-			ret++;
-		}
-	return ret;
 }
 
 static bool_t
@@ -289,7 +281,7 @@ track_update(track_t *track, track_rev_t *rev)
 {
 	for (channel_t *i = track->temp_channels; i != NULL; i = i->next)
 		while (!bst_empty(&i->notes))
-			note_erase(channel_note(bst_root(&i->notes)));
+			erase_note(channel_note(bst_root(&i->notes)));
 
 	bst_update(&track->notes, rev->notes);
 	for (int i = 0; i < TCTRLS; i++)
