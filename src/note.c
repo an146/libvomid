@@ -38,6 +38,47 @@ erase_notes(note_t *note)
 }
 
 void
+copy_note(note_t *note, track_t *track, time_t dt, pitch_t dp)
+{
+	note_t *dnote = track_insert(track, note->on_time + dt, note->off_time + dt, note->pitch);
+	for (int i = 0; i < CCTRLS; i++) {
+		map_copy(&note->channel->ctrl[i], note->on_time, note->off_time,
+		         &dnote->channel->ctrl[i], dnote->on_time);
+	}
+	note_set_cctrl(dnote, CCTRL_PROGRAM, track_get_program(track));
+	note_set_pitch(dnote, note->pitch + dp);
+}
+
+void
+note_set_cctrl(note_t *note, int cctrl, int value)
+{
+	map_set_range(&note->channel->ctrl[cctrl], note->on_time, note->off_time, value);
+}
+
+static int
+base_pitch(note_t *note)
+{
+	vmd_midipitch_t mp;
+	int pw;
+	pitch_info(&note->track->notesystem, note->pitch, &mp, &pw);
+	return pw + (mp - note->midipitch) * 0x1000;
+}
+
+void
+note_set_pitch(note_t *note, pitch_t pitch)
+{
+	note_t dnote;
+	memcpy(&dnote, note, sizeof(note_t));
+	dnote.pitch = pitch;
+	pitch_info(&note->track->notesystem, pitch, &dnote.midipitch, NULL);
+	int dpw = base_pitch(&dnote) - base_pitch(note);
+
+	isolate_note(note);
+	bst_change(&note->track->notes, bst_node(note), &dnote);
+	map_add(&note->channel->ctrl[CCTRL_PITCHWHEEL], note->on_time, note->off_time, dpw);
+}
+
+void
 note_set_channel(note_t *note, channel_t *channel)
 {
 	assert(note->channel != NULL);
@@ -74,7 +115,7 @@ note_cmp(const note_t *a, const note_t *b)
 }
 
 void
-note_set_pitch(note_t *note, pitch_t pitch)
+note_reset_pitch(note_t *note, pitch_t pitch)
 {
 	note_t n1;
 	int pw;

@@ -123,6 +123,13 @@ track_fini(track_t *track)
 	notesystem_fini(track->notesystem);
 }
 
+void
+track_clear(track_t *track)
+{
+	while (!bst_empty(&track->notes))
+		erase_note(track_note(bst_root(&track->notes)));
+}
+
 static void *
 clb(note_t *note, void *arg)
 {
@@ -164,7 +171,7 @@ track_insert(track_t *track, time_t beg, time_t end, pitch_t pitch)
 	};
 
 	note_t *note = insert_note(&n);
-	note_set_pitch(note, pitch);
+	note_reset_pitch(note, pitch);
 	map_set_range(&note->channel->ctrl[CCTRL_PROGRAM], beg, end, track_get_program(track));
 	return note;
 }

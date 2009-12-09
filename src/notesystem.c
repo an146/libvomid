@@ -23,8 +23,10 @@ pitch_info(const notesystem_t *ns, pitch_t pitch, midipitch_t *midipitch, int *w
 	if (mp < 0 || mp >= NOTES)
 		return ERROR;
 
-	*midipitch = mp;
-	*wheel = (int)((fmp - mp) * 0x1000);
+	if (midipitch)
+		*midipitch = mp;
+	if (wheel)
+		*wheel = (int)((fmp - mp) * 0x1000);
 	return OK;
 }
 

@@ -72,6 +72,24 @@ map_set_range(map_t *map, time_t beg, time_t end, int value)
 	map_set(map, end, end_value);
 }
 
+void
+map_set_node(map_t *map, bst_node_t *node, int value)
+{
+	map_bstdata_t data = *(map_bstdata_t *)node->data;
+	data.value = value;
+	bst_change(&map->bst, node, &data);
+}
+
+void
+map_add(map_t *map, time_t beg, time_t end, int dvalue)
+{
+	while (beg < end) {
+		time_t next = map_time(bst_upper_bound(&map->bst, &beg));
+		map_set(map, beg, map_get(map, beg, NULL) + dvalue);
+		beg = next;
+	}
+}
+
 bool_t
 map_eq(map_t *a, map_t *b, time_t beg, time_t end)
 {

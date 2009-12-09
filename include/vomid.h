@@ -230,7 +230,9 @@ int  vmd_map_get(vmd_map_t *, vmd_time_t, vmd_time_t *);
 void vmd_map_get_change(vmd_map_t *, vmd_time_t *, int *);
 void vmd_map_set(vmd_map_t *, vmd_time_t, int);
 void vmd_map_set_range(vmd_map_t *, vmd_time_t, vmd_time_t, int);
+void vmd_map_set_node(vmd_map_t *, vmd_bst_node_t *, int);
 void vmd_map_copy(vmd_map_t *, vmd_time_t, vmd_time_t, vmd_map_t *, vmd_time_t);
+void vmd_map_add(vmd_map_t *, vmd_time_t, vmd_time_t, int);
 
 vmd_bool_t vmd_map_eq(vmd_map_t *, vmd_map_t *, vmd_time_t, vmd_time_t);
 
@@ -346,6 +348,9 @@ struct vmd_note_t {
 void vmd_isolate_note(vmd_note_t *);
 void vmd_erase_note(vmd_note_t *);
 int  vmd_erase_notes(vmd_note_t *);
+void vmd_copy_note(vmd_note_t *, vmd_track_t *, vmd_time_t, vmd_pitch_t);
+void vmd_note_set_cctrl(vmd_note_t *, int, int);
+void vmd_note_set_pitch(vmd_note_t *, vmd_pitch_t);
 
 /* notesystem.c */
 
@@ -391,6 +396,7 @@ typedef void *(*vmd_note_callback_t)(vmd_note_t *, void *);
 
 void vmd_track_init(vmd_track_t *, vmd_file_t *, vmd_chanmask_t);
 void vmd_track_fini(vmd_track_t *);
+void vmd_track_clear(vmd_track_t *);
 
 int  vmd_track_get_program(vmd_track_t *);
 void vmd_track_set_program(vmd_track_t *, int);

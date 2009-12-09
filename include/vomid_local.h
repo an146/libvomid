@@ -130,7 +130,7 @@ void *          vmd_stack_pop(vmd_stack_t *);
 
 vmd_note_t *    vmd_insert_note(const vmd_note_t *note);
 void            vmd_note_set_channel(vmd_note_t *note, vmd_channel_t *);
-void            vmd_note_set_pitch(vmd_note_t *note, vmd_pitch_t);
+void            vmd_note_reset_pitch(vmd_note_t *note, vmd_pitch_t);
 
 int             vmd_note_cmp(const vmd_note_t *, const vmd_note_t *);
 
