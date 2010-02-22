@@ -3,6 +3,7 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
 #include "vomid_local.h"
 
 typedef struct pool_chunk_t pool_chunk_t;
@@ -50,5 +51,13 @@ pool_alloc(pool_t *pool, size_t s)
 
 	void *ret = pool->chunk->data + pool->chunk->size - pool->chunk->free;
 	pool->chunk->free -= s;
+	return ret;
+}
+
+char *
+pool_strdup(pool_t *pool, const char *str)
+{
+	char *ret = pool_alloc(pool, strlen(str) + 1);
+	strcpy(ret, str);
 	return ret;
 }

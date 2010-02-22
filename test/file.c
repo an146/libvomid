@@ -29,7 +29,7 @@ TEST("file")
 		sprintf(buf, "Track %i", i + 1);
 
 		file.track[i] = track_create(&file, cm[i]);
-		file.track[i]->name = file_copy_string(&file, buf);
+		file.track[i]->name = pool_strdup(&file.pool, buf);
 		file.tracks++;
 	}
 	track_set_notesystem(file.track[0], notesystem_tet(17));

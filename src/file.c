@@ -2,8 +2,7 @@
  * See LICENSE file for license details.
  */
 
-#include <stdlib.h> /* malloc */
-#include <string.h>
+#include <memory.h> /* memcpy */
 #include "vomid_local.h"
 
 void
@@ -36,16 +35,6 @@ file_fini(file_t *file)
 		track_destroy(t);
 	}
 	pool_fini(&file->pool);
-}
-
-char *
-file_copy_string(file_t *file, const char *str)
-{
-	int len = strlen(str);
-	char *ret = pool_alloc(&file->pool, len + 1);
-	memcpy(ret, str, len);
-	ret[len] = '\0';
-	return ret;
 }
 
 status_t

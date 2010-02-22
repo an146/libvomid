@@ -269,6 +269,7 @@ struct vmd_pool_t {
 void  vmd_pool_init(vmd_pool_t *);
 void  vmd_pool_fini(vmd_pool_t *);
 void *vmd_pool_alloc(vmd_pool_t *, size_t);
+char *vmd_pool_strdup(vmd_pool_t *, const char *);
 
 /* file.c */
 
