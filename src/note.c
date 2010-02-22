@@ -14,6 +14,7 @@ insert_note(const note_t *note)
 	ret->channel = note->channel;
 
 	bst_insert(&note->channel->notes, &ret);
+	assert(bst_find(&note->channel->notes, &ret) != NULL);
 	if (note->channel->number >= 0)
 		note->track->channel_usage[note->channel->number]++;
 	return ret;
@@ -41,12 +42,16 @@ void
 copy_note(note_t *note, track_t *track, time_t dt, pitch_t dp)
 {
 	note_t *dnote = track_insert(track, note->on_time + dt, note->off_time + dt, note->pitch);
+	assert(bst_find(&dnote->channel->notes, &dnote) != NULL);
 	for (int i = 0; i < CCTRLS; i++) {
 		map_copy(&note->channel->ctrl[i], note->on_time, note->off_time,
 		         &dnote->channel->ctrl[i], dnote->on_time);
 	}
+	assert(bst_find(&dnote->channel->notes, &dnote) != NULL);
 	note_set_cctrl(dnote, CCTRL_PROGRAM, track_get_program(track));
+	assert(bst_find(&dnote->channel->notes, &dnote) != NULL);
 	note_set_pitch(dnote, note->pitch + dp);
+	assert(bst_find(&dnote->channel->notes, &dnote) != NULL);
 }
 
 void
@@ -82,6 +87,8 @@ void
 note_set_channel(note_t *note, channel_t *channel)
 {
 	assert(note->channel != NULL);
+	if (note->channel == channel)
+		return;
 	bst_erase(&note->channel->notes, bst_find(&note->channel->notes, &note));
 
 	if (note->channel->number >= 0)
@@ -101,7 +108,7 @@ note_set_channel(note_t *note, channel_t *channel)
 void
 isolate_note(note_t *note)
 {
-	channel_t *tc = track_temp_channel(note->track, note->on_time, note->off_time);
+	channel_t *tc = track_temp_channel(note->track, note->on_time, note->off_time, note);
 	note_set_channel(note, tc);
 }
 
@@ -119,11 +126,15 @@ note_reset_pitch(note_t *note, pitch_t pitch)
 {
 	note_t n1;
 	int pw;
+
+	isolate_note(note);
 	memcpy(&n1, note, sizeof(note_t));
 	n1.pitch = pitch;
 	pitch_info(&note->track->notesystem, pitch, &n1.midipitch, &pw);
 
-	isolate_note(note);
+	bst_node_t *channel_node = bst_find(&note->channel->notes, &note);
+	assert(channel_node != NULL);
 	bst_change(&note->track->notes, bst_node(note), &n1);
+	bst_change(&note->channel->notes, channel_node, NULL);
 	map_set_range(&note->channel->ctrl[CCTRL_PITCHWHEEL], note->on_time, note->off_time, pw);
 }

@@ -186,7 +186,7 @@ struct vmd_track_rev_t {
 };
 
 vmd_status_t        vmd_track_flatten(vmd_track_t *);
-vmd_channel_t *     vmd_track_temp_channel(vmd_track_t *, vmd_time_t, vmd_time_t);
+vmd_channel_t *     vmd_track_temp_channel(vmd_track_t *, vmd_time_t, vmd_time_t, vmd_note_t *);
 
 void                vmd_track_commit(vmd_track_t *, vmd_track_rev_t *);
 void                vmd_track_update(vmd_track_t *, vmd_track_rev_t *);

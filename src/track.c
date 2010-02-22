@@ -131,22 +131,22 @@ track_clear(track_t *track)
 }
 
 static void *
-clb(note_t *note, void *arg)
+clb(note_t *note, void *ignored)
 {
-	return note;
+	return note == ignored ? NULL : note;
 }
 
 static bool_t
-has_free_spot(channel_t *channel, time_t beg, time_t end)
+has_free_spot(channel_t *channel, time_t beg, time_t end, note_t *ignored)
 {
-	return channel_range(channel, beg, end, clb, NULL) == NULL;
+	return channel_range(channel, beg, end, clb, ignored) == NULL;
 }
 
 channel_t *
-track_temp_channel(track_t *track, time_t beg, time_t end)
+track_temp_channel(track_t *track, time_t beg, time_t end, note_t *ignored)
 {
 	for (channel_t *i = track->temp_channels; i != NULL; i = i->next)
-		if (has_free_spot(i, beg, end))
+		if (has_free_spot(i, beg, end, ignored))
 			return i;
 
 	int lcn = track->temp_channels == NULL ? 0 : track->temp_channels->number;
@@ -161,7 +161,7 @@ track_insert(track_t *track, time_t beg, time_t end, pitch_t pitch)
 {
 	note_t n = {
 		.track = track,
-		.channel = track_temp_channel(track, beg, end),
+		.channel = track_temp_channel(track, beg, end, NULL),
 
 		.on_time = beg,
 		.on_vel = DEFAULT_VELOCITY,

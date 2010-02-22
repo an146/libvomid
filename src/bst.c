@@ -481,15 +481,17 @@ bst_erase_range(bst_t *tree, bst_node_t *beg, bst_node_t *end)
 void
 bst_change(bst_t *tree, bst_node_t *node, const void *data)
 {
-	if (node->in_tree && !node->inserted && !node->saved && tree->tip != NULL) {
-		bst_node_t *backup = alloc_node(tree);
-		memcpy(backup->data, node->data, tree->csize);
-		backup->parent = node;
-		dlist_insert(&tree->save, backup);
+	if (data != NULL) {
+		if (node->in_tree && !node->inserted && !node->saved && tree->tip != NULL) {
+			bst_node_t *backup = alloc_node(tree);
+			memcpy(backup->data, node->data, tree->csize);
+			backup->parent = node;
+			dlist_insert(&tree->save, backup);
 
-		node->saved = 1;
+			node->saved = 1;
+		}
+		memcpy(node->data, data, tree->csize);
 	}
-	memcpy(node->data, data, tree->csize);
 
 	//TODO: optimize
 	erase_node(tree, node);
