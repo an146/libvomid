@@ -272,7 +272,10 @@ file_play_(file_t *file, time_t time, tevent_clb_t tevent_clb,
 		.events = 0
 	};
 	int i, j;
+
 	stack_init(&ctx.ev_pool, sizeof(event_t));
+	for (i = 0; i < CHANNELS; i++)
+		ctx.channel_owner[i] = -1;
 
 	file_flatten(file);
 
