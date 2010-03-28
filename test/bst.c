@@ -137,7 +137,7 @@ change_tree(bst_t *tree)
 	}
 }
 
-TEST_SETUP("bst")
+TEST_SETUP(bst)
 {
 	bst_init(tree, sizeof(elem_t), sizeof(int), int_cmp, updator);
 	ASSERT(tree != NULL);
@@ -156,13 +156,13 @@ TEST_SETUP("bst")
 	ASSERT(bst_size(tree) == idatalen);
 }
 
-TEST("bst/traversal")
+TEST(bst, traversal)
 {
 	qsort(idata, idatalen, sizeof(int), int_cmp);
 	assert_eq(bst_begin(tree), bst_end(tree), idata, idata + idatalen);
 }
 
-TEST("bst/search")
+TEST(bst, search)
 {
 	for (int i = 0; i < idatalen; i++) {
 		bst_node_t *node = bst_find(tree, &idata[i]);
@@ -194,7 +194,7 @@ TEST("bst/search")
 	}
 }
 
-TEST("bst/erase")
+TEST(bst, erase)
 {
 	int n = idatalen / 2;
 
@@ -222,7 +222,7 @@ size_change(bst_node_t *l)
 	return ret;
 }
 
-TEST("bst/revert")
+TEST(bst, revert)
 {
 	bst_commit(tree);
 	int s1 = bst_size(tree);
@@ -246,7 +246,7 @@ TEST("bst/revert")
 #define REVS 15
 #define UPDATES 10
 
-TEST("bst/update")
+TEST(bst, update)
 {
 	if (idatalen == 0)
 		return;
@@ -312,14 +312,14 @@ TEST("bst/update")
 	free(data);
 }
 
-TEST_TEARDOWN("bst")
+TEST_TEARDOWN(bst)
 {
 	verify_tree(tree);
 	bst_fini(tree);
 	free(idata);
 }
 
-TEST("bst-inserterase")
+TEST(no_suite, bst_inserterase)
 {
 	int i = 0;
 	bst_init(tree, sizeof(int), sizeof(int), int_cmp, NULL);

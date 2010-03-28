@@ -1,2 +1,0 @@
-#!/bin/sh
-echo "_$1_" | sed 's/test\///' | tr '/.-' '_'

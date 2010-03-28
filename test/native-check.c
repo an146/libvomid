@@ -2,7 +2,7 @@
 
 file_t file;
 
-TEST("native-check")
+TEST(no_suite, native_check)
 {
 	vmd_bool_t native;
 	if (file_import_f(&file, stdin, &native) != OK)

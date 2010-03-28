@@ -10,17 +10,17 @@
 
 #include "vomid_local.h"
 
-#define TEST(name) \
+#define TEST(suite, name) \
 	void \
-	JOIN3(test, FILE_ID, __LINE__)()
+	JOIN3(test, suite, name)()
 
-#define TEST_SETUP(name) \
+#define TEST_SETUP(suite) \
 	void \
-	JOIN3(test, FILE_ID, __LINE__)()
+	JOIN(test_setup, suite)()
 
-#define TEST_TEARDOWN(name) \
+#define TEST_TEARDOWN(suite) \
 	void \
-	JOIN3(test, FILE_ID, __LINE__)()
+	JOIN(test_teardown, suite)()
 
 void vmd_test_fail(const char *file, int line, const char *fmt, ...);
 

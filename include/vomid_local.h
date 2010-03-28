@@ -8,7 +8,7 @@
 #define VOMID_LOCAL_H_INCLUDED
 
 #include "vomid.h"
-#include "../build/gen/shortnames.h"
+#include "vomid_shortnames.h"
 
 typedef unsigned char uchar;
 typedef struct vmd_channel_rev_t vmd_channel_rev_t;
@@ -269,6 +269,8 @@ struct vmd_platform_t {
 	void (*flush_output)();
 	const char *name;
 	vmd_bool_t initialized;
+
+        vmd_platform_t *next;
 };
 
 #endif /* VOMID_LOCAL_H_INCLUDED */

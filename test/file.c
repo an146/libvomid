@@ -9,12 +9,12 @@ file_t file;
 #define MUTED 28
 #define DISTORTION 30
 
-TEST_SETUP("file")
+TEST_SETUP(file)
 {
 	file_init(&file);
 }
 
-TEST("file")
+TEST(file, notes)
 {
 	int i, j;
 	note_t *note;
@@ -111,7 +111,7 @@ measure_clb(const measure_t *m, void *arg)
 	);
 }
 
-TEST("file/measures")
+TEST(file, measures)
 {
 	file_measures(&file, 0, 240 * 4, measure_clb, NULL);
 	map_set(&file.ctrl[FCTRL_TIMESIG], 240 * 5, TIMESIG(3, 4));
@@ -120,7 +120,7 @@ TEST("file/measures")
 	file_measures(&file, 240 * 8 + 1, 240 * 8 + 2, measure_clb, NULL);
 }
 
-TEST_TEARDOWN("file")
+TEST_TEARDOWN(file)
 {
 	file_fini(&file);
 }

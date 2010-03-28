@@ -13,7 +13,7 @@ map_print(map_t *map)
 	printf("\n");
 }
 
-TEST("map")
+TEST(map, map)
 {
 	int def;
 	int beg, end, val;
@@ -29,7 +29,7 @@ TEST("map")
 	map_fini(&map);
 }
 
-TEST("map-eq")
+TEST(map, equality)
 {
 	map_t map1;
 	map_init(&map1, 0);

@@ -6,7 +6,7 @@
 
 file_t file;
 
-TEST_SETUP("track")
+TEST_SETUP(track)
 {
 	file_import_f(&file, stdin, NULL);
 }
@@ -42,7 +42,7 @@ verify_tree(bst_t *tree)
 	verify_subtree(bst_root(tree));
 }
 
-TEST("track/range")
+TEST(track, range)
 {
 	for (int i = 0; i < file.tracks; i++) {
 		track_t *track = file.track[i];
@@ -69,7 +69,7 @@ TEST("track/range")
 	}
 }
 
-TEST_TEARDOWN("track")
+TEST_TEARDOWN(track)
 {
 	file_fini(&file);
 }

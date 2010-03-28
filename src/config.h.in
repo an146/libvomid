@@ -1,0 +1,3 @@
+#cmakedefine HAL_ALSA
+#cmakedefine HAL_POSIX
+#cmakedefine HAL_WIN32

@@ -6,6 +6,9 @@
 #include <stdlib.h>
 #include "vomid_local.h"
 
+static platform_t *platforms;
+static platform_t *cur_platform[DEVICE_TYPES] = {};
+
 void
 sleep_till(systime_t t)
 {
@@ -14,15 +17,19 @@ sleep_till(systime_t t)
 		;
 }
 
+#define ADD_PLATFORM(p) do { p->next = platforms; platforms = p; } while(0)
+#define FOR_EACH_PLATFORM(p) for (p = platforms; p != NULL; p = p->next)
+
 static void
 fini_platforms()
 {
 	notes_off();
-#   define PLATFORM(p) \
-		if (!p->initialized && p->fini != NULL) \
-			p->fini();
-#   include "../build/gen/platforms.h"
-#   undef PLATFORM
+
+	platform_t *p;
+	FOR_EACH_PLATFORM(p) {
+		if (!p->initialized && p->fini != NULL)
+				p->fini();
+	}
 }
 
 static void
@@ -31,26 +38,32 @@ init_platforms()
 	static int initialized = 0;
 	if (!initialized) {
 		atexit(fini_platforms);
+#ifdef HAVE_ALSA
+		ADD_PLATFORM(platform_alsa);
+#endif
+#ifdef WINDOWS
+		ADD_PLATFORM(platform_winmm);
+#endif
 		initialized = 1;
 	}
-#   define PLATFORM(p) \
-		if (!p->initialized && (p->init == NULL || p->init() == OK)) \
-			p->initialized = TRUE;
-#   include "../build/gen/platforms.h"
-#   undef PLATFORM
-}
 
-static vmd_platform_t *platforms[DEVICE_TYPES] = {};
+	platform_t *p;
+	FOR_EACH_PLATFORM(p) {
+		if (!p->initialized && (p->init == NULL || p->init() == OK))
+			p->initialized = TRUE;
+	}
+}
 
 void
 enum_devices(int type, device_clb_t clb, void *arg)
 {
 	init_platforms();
-#   define PLATFORM(p) \
-		if (p->initialized && p->enum_devices != NULL) \
+
+	platform_t *p;
+	FOR_EACH_PLATFORM(p) {
+		if (p->initialized && p->enum_devices != NULL)
 			p->enum_devices(type, clb, arg);
-#   include "../build/gen/platforms.h"
-#   undef PLATFORM
+	}
 }
 
 status_t
@@ -61,20 +74,19 @@ set_device(int type, const char *dev)
 	if (!slash)
 		return ERROR;
 
-	platform_t *platform = NULL;
-#   define PLATFORM(p) \
-		if (strlen(p->name) == slash - dev && !strncmp(p->name, dev, slash - dev)) \
+	platform_t *platform = NULL, *p;
+	FOR_EACH_PLATFORM(p) {
+		if (strlen(p->name) == slash - dev && !strncmp(p->name, dev, slash - dev))
 			platform = p;
-#   include "../build/gen/platforms.h"
-#   undef PLATFORM
+	}
 	if (platform == NULL || platform->set_device == NULL)
 		return ERROR;
 
 	status_t ret = platform->set_device(type, slash + 1);
 	if (ret == OK) {
-		if (platforms[type] != NULL && platforms[type] != platform)
-			platforms[type]->set_device(type, NULL);
-		platforms[type] = platform;
+		if (cur_platform[type] != NULL && cur_platform[type] != platform)
+			cur_platform[type]->set_device(type, NULL);
+		cur_platform[type] = platform;
 	}
 	return ret;
 }
@@ -84,14 +96,14 @@ output(const unsigned char *ev, size_t size)
 {
 	if (ev[0] < 0x80 || ev[0] >= 0xF0)
 		return;
-	if (platforms[OUTPUT_DEVICE] != NULL && platforms[OUTPUT_DEVICE]->output != NULL)
-		platforms[OUTPUT_DEVICE]->output(ev, size);
+	if (cur_platform[OUTPUT_DEVICE] != NULL && cur_platform[OUTPUT_DEVICE]->output != NULL)
+		cur_platform[OUTPUT_DEVICE]->output(ev, size);
 }
 
 void
 flush_output()
 {
-	platform_t *p = platforms[OUTPUT_DEVICE];
+	platform_t *p = cur_platform[OUTPUT_DEVICE];
 	if (p != NULL && p->flush_output != NULL)
 		p->flush_output();
 }

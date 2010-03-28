@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#include "vomid_test.h"
 
 void
 vmd_test_fail(const char *file, int line, const char *fmt, ...)
@@ -53,15 +54,17 @@ main(int argc, char **argv)
 	if (!strcmp(argv[1], "--list")) {
 
 #undef TEST
-#define TEST(id, name) printf("%s\n", name);
+#define TEST(suite, name) printf("%s/%s\n", #suite, #name);
 
 #undef TEST_SETUP
-#define TEST_SETUP(id, name)
+#define TEST_SETUP(suite)
 
 #undef TEST_TEARDOWN
-#define TEST_TEARDOWN(id, name)
+#define TEST_TEARDOWN(suite)
 
-#include "../build/gen/reg_tests.h"
+#define TEST_SUITE(suite)
+
+#include "reg_tests.h"
 
 		exit(0);
 	}
@@ -72,15 +75,15 @@ main(int argc, char **argv)
 	test_t setup = NULL, test = NULL, teardown = NULL;
 
 #undef TEST
-#define TEST(id, name) SET_ROUTINE(id, test, name, test_name)
+#define TEST(suite, name) SET_ROUTINE(JOIN3(test, suite, name), test, #suite "/" #name, test_name)
 
 #undef TEST_SETUP
-#define TEST_SETUP(id, name) SET_ROUTINE(id, setup, name, suite_name)
+#define TEST_SETUP(suite) SET_ROUTINE(JOIN(test_setup, suite), setup, #suite, suite_name)
 
 #undef TEST_TEARDOWN
-#define TEST_TEARDOWN(id, name) SET_ROUTINE(id, teardown, name, suite_name)
+#define TEST_TEARDOWN(suite) SET_ROUTINE(JOIN(test_teardown, suite), teardown, #suite, suite_name)
 
-#include "../build/gen/reg_tests.h"
+#include "reg_tests.h"
 
 	srand(0x12345678); /* for reproducability */
 

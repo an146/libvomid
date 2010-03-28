@@ -2,6 +2,8 @@
  * See LICENSE file for license details.
  */
 
+#include "config.h"
+
 #ifdef HAL_POSIX
 
 #define _BSD_SOURCE

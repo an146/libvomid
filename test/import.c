@@ -2,7 +2,7 @@
 
 file_t file;
 
-TEST_SETUP("import")
+TEST_SETUP(import)
 {
 	if(file_import_f(&file, stdin, NULL) != OK)
 		printf("Invalid file\n");
@@ -16,7 +16,7 @@ clb(note_t *note, void *arg)
 	return NULL;
 }
 
-TEST("import/notes")
+TEST(import, notes)
 {
 	for (int i = 0; i < file.tracks; i++) {
 		track_t *track = file.track[i];
@@ -52,7 +52,7 @@ TEST("import/notes")
 	}
 }
 
-TEST("import/ctrl")
+TEST(import, ctrl)
 {
 	int i, j;
 
@@ -79,12 +79,12 @@ TEST("import/ctrl")
 	}
 }
 
-TEST("import/export")
+TEST(import, export)
 {
 	file_export_f(&file, stdout);
 }
 
-TEST_TEARDOWN("import")
+TEST_TEARDOWN(import)
 {
 	file_fini(&file);
 }
