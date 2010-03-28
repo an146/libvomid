@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "vomid_local.h"
+#include "config.h"
 
 static platform_t *platforms;
 static platform_t *cur_platform[DEVICE_TYPES] = {};
@@ -17,7 +18,7 @@ sleep_till(systime_t t)
 		;
 }
 
-#define ADD_PLATFORM(p) do { p->next = platforms; platforms = p; } while(0)
+#define ADD_PLATFORM(p) do { (p)->next = platforms; platforms = (p); } while(0)
 #define FOR_EACH_PLATFORM(p) for (p = platforms; p != NULL; p = p->next)
 
 static void
@@ -38,11 +39,11 @@ init_platforms()
 	static int initialized = 0;
 	if (!initialized) {
 		atexit(fini_platforms);
-#ifdef HAVE_ALSA
-		ADD_PLATFORM(platform_alsa);
+#ifdef HAL_ALSA
+		ADD_PLATFORM(&platform_alsa);
 #endif
 #ifdef WINDOWS
-		ADD_PLATFORM(platform_winmm);
+		ADD_PLATFORM(&platform_winmm);
 #endif
 		initialized = 1;
 	}

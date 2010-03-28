@@ -270,7 +270,10 @@ struct vmd_platform_t {
 	const char *name;
 	vmd_bool_t initialized;
 
-        vmd_platform_t *next;
+	vmd_platform_t *next;
 };
+
+extern vmd_platform_t vmd_platform_alsa;
+extern vmd_platform_t vmd_platform_win32;
 
 #endif /* VOMID_LOCAL_H_INCLUDED */

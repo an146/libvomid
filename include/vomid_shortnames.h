@@ -178,7 +178,9 @@
 #define OUTPUT_DEVICE VMD_OUTPUT_DEVICE
 #define pitch_info vmd_pitch_info
 #define pitch_t vmd_pitch_t
+#define platform_alsa vmd_platform_alsa
 #define platform_t vmd_platform_t
+#define platform_win32 vmd_platform_win32
 #define pool_alloc vmd_pool_alloc
 #define pool_chunk_t vmd_pool_chunk_t
 #define pool_fini vmd_pool_fini

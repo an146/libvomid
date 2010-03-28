@@ -56,9 +56,10 @@ configure_file (
 	"${PROJECT_SOURCE_DIR}/src/config.h.in"
 	"${PROJECT_BINARY_DIR}/config.h"
 )
-include_directories ("${PROJECT_BINARY_DIR}")
+include_directories (${PROJECT_BINARY_DIR} ${ALSA_INCLUDE_DIR})
 
 add_library (libvomid ${SOURCES})
+target_link_libraries (libvomid ${ALSA_LIBRARY})
 set_target_properties (libvomid PROPERTIES OUTPUT_NAME vomid)
 add_executable (tester ${TEST_SOURCES})
 target_link_libraries (tester libvomid)
