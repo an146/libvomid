@@ -85,10 +85,13 @@ static status_t
 _set_device(int type, const char *id)
 {
 	if (type == OUTPUT_DEVICE) {
-		if (sscanf(id, "%i:%i", &conn_client, &conn_port) < 2)
+		int c, p;
+		if (sscanf(id, "%i:%i", &c, &p) < 2)
 			return ERROR;
-		if (snd_seq_connect_to(seq, port, conn_client, conn_port) >= 0) {
-			snd_seq_disconnect_from(seq, port, conn_client, conn_port);
+		if (snd_seq_connect_to(seq, port, c, p) >= 0) {
+			snd_seq_disconnect_to(seq, port, conn_client, conn_port);
+			conn_client = c;
+			conn_port = p;
 			return OK;
 		}
 	}
