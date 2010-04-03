@@ -43,7 +43,7 @@ include_directories ("include")
 require_c99 ()
 find_package(ALSA)
 set (HAL_ALSA ${ALSA_FOUND})
-set (HAL_WINMM ${WIN32})
+set (HAL_WIN32 ${WIN32})
 if (UNIX AND NOT WIN32)
 	set (HAL_POSIX TRUE)
 else ()
@@ -54,10 +54,19 @@ configure_file (
 	"${PROJECT_SOURCE_DIR}/src/config.h.in"
 	"${PROJECT_BINARY_DIR}/config.h"
 )
-include_directories (${PROJECT_BINARY_DIR} ${ALSA_INCLUDE_DIR})
+include_directories (${PROJECT_BINARY_DIR})
 
 add_library (libvomid ${SOURCES})
-target_link_libraries (libvomid ${ALSA_LIBRARY})
 set_target_properties (libvomid PROPERTIES OUTPUT_NAME vomid)
+
+if (HAL_ALSA)
+	include_directories (${ALSA_INCLUDE_DIR})
+	target_link_libraries (libvomid ${ALSA_LIBRARY})
+endif ()
+
+if (HAL_WIN32)
+	target_link_libraries (libvomid winmm)
+endif ()
+
 add_executable (play examples/play.c)
 target_link_libraries (play libvomid)
