@@ -1,6 +1,0 @@
-#!/bin/sh
-
-for f do
-	grep -n '^TEST[_A-Za-z]*(.*)' "$f" | \
-	sed 's/\(.*\):\(TEST[_A-Za-z]*\)(\(.*\))[ ;{]*/\2(test'`./file-id "$f"`'\1, \3)/;s/, )/)/'
-done
