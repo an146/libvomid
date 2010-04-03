@@ -42,8 +42,8 @@ init_platforms()
 #ifdef HAL_ALSA
 		ADD_PLATFORM(&platform_alsa);
 #endif
-#ifdef WINDOWS
-		ADD_PLATFORM(&platform_winmm);
+#ifdef HAL_WIN32
+		ADD_PLATFORM(&platform_win32);
 #endif
 		initialized = 1;
 	}

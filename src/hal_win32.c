@@ -83,7 +83,7 @@ _output(const uchar *ev, size_t size)
 	}
 }
 
-platform_t vmd_platform_winmm = {
+platform_t vmd_platform_win32 = {
 	.enum_devices = _enum_devices,
 	.set_device = _set_device,
 	.output = _output,
