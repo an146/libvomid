@@ -1,4 +1,3 @@
-include (cmake/process_tests.cmake)
 include (cmake/require_c99.cmake)
 
 cmake_minimum_required (VERSION 2.8)
@@ -41,7 +40,6 @@ set (TEST_SOURCES
 
 include_directories ("include")
 
-process_tests ()
 require_c99 ()
 find_package(ALSA)
 set (HAL_ALSA ${ALSA_FOUND})
@@ -61,5 +59,3 @@ include_directories (${PROJECT_BINARY_DIR} ${ALSA_INCLUDE_DIR})
 add_library (libvomid ${SOURCES})
 target_link_libraries (libvomid ${ALSA_LIBRARY})
 set_target_properties (libvomid PROPERTIES OUTPUT_NAME vomid)
-add_executable (tester ${TEST_SOURCES})
-target_link_libraries (tester libvomid)
