@@ -278,6 +278,7 @@ char *vmd_pool_strdup(vmd_pool_t *, const char *);
 struct vmd_file_t {
 	unsigned int   division;
 	int            tracks;
+	vmd_bool_t     force_compatible;
 
 	vmd_track_t   *track[VMD_MAX_TRACKS];
 	vmd_channel_t  channel[VMD_CHANNELS];
@@ -300,6 +301,7 @@ vmd_status_t    vmd_file_import(vmd_file_t *, const char *, vmd_bool_t *sha_ok);
 vmd_status_t    vmd_file_export(vmd_file_t *, const char *);
 
 vmd_time_t      vmd_file_length(const vmd_file_t *);
+vmd_bool_t      vmd_file_is_compatible(const vmd_file_t *);
 
 struct vmd_measure_t {
 	int number;

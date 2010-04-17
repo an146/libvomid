@@ -561,5 +561,6 @@ file_import_f(file_t *file, FILE *f, vmd_bool_t *_sha_ok)
 	stack_fini(&ctx.offs);
 	if (_sha_ok != NULL)
 		*_sha_ok = !trailing_stuff && check_sha(&ctx);
+	file->force_compatible = file_is_compatible(file);
 	return file->tracks ? OK : ERROR;
 }

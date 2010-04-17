@@ -12,6 +12,7 @@ file_init(file_t *file)
 
 	file->tracks = 0;
 	file->division = 240;
+	file->force_compatible = TRUE;
 	for (i = 0; i < CHANNELS; i++)
 		channel_init(&file->channel[i], i);
 	for (i = 0; i < FCTRLS; i++)
@@ -212,3 +213,24 @@ track_idx(const track_t *track)
 			return i;
 	return -1;
 }
+
+bool_t
+file_is_compatible(const file_t *file)
+{
+	chanmask_t all = 0;
+	for (int i = 0; i < file->tracks; i++) {
+		chanmask_t cm = 0;
+		for (int j = 0; j < CHANNELS; j++) {
+			if (file->track[i]->channel_usage[j] > 0) {
+				if (cm != 0)
+					return FALSE;
+				cm |= (1 << j);
+			}
+		}
+		if ((all & cm) != 0)
+			return FALSE;
+		all |= cm;
+	}
+	return TRUE;
+}
+

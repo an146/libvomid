@@ -91,6 +91,7 @@
 #define file_import vmd_file_import
 #define file_import_f vmd_file_import_f
 #define file_init vmd_file_init
+#define file_is_compatible vmd_file_is_compatible
 #define file_length vmd_file_length
 #define file_measure vmd_file_measure
 #define file_measure_at vmd_file_measure_at
