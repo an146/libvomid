@@ -208,6 +208,8 @@ file_measures(file_t *file, time_t beg, time_t end, measure_clb_t clb, void *arg
 int
 track_idx(const track_t *track)
 {
+	if (track == NULL)
+		return -1;
 	for (int i = 0; i < track->file->tracks; i++)
 		if (track->file->track[i] == track)
 			return i;
