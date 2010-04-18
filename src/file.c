@@ -63,7 +63,7 @@ regen_measure_index(file_t *file)
 	int ts = ts_map->default_value;
 	time_t time = 0;
 	int measure = 1;
-	for (bst_node_t *i = bst_begin(&ts_map->bst); i != bst_end(&ts_map->bst); i = bst_next(i)) {
+	BST_FOREACH (bst_node_t *i, &ts_map->bst) {
 		int dm = measures(file, map_time(i) - time, ts);
 		ts = map_value(i);
 		time = map_time(i);

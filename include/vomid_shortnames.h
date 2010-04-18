@@ -11,6 +11,7 @@
 #define bst_erase_range vmd_bst_erase_range
 #define bst_find vmd_bst_find
 #define bst_fini vmd_bst_fini
+#define BST_FOREACH VMD_BST_FOREACH
 #define bst_init vmd_bst_init
 #define bst_insert vmd_bst_insert
 #define bst_lower_bound vmd_bst_lower_bound

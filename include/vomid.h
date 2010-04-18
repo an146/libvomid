@@ -211,6 +211,12 @@ vmd_bst_rev_t  *vmd_bst_commit(vmd_bst_t *);
 vmd_bst_node_t *vmd_bst_revert(vmd_bst_t *);
 vmd_bst_node_t *vmd_bst_update(vmd_bst_t *, vmd_bst_rev_t *);
 
+#define VMD_BST_FOREACH(node, bst) \
+	for (vmd_bst_node_t *_node_ = vmd_bst_begin(bst), *_cont_ = _node_; \
+		_node_ != vmd_bst_end(bst); \
+		_cont_ = _node_ = vmd_bst_next(_node_)) \
+		for (node = _node_; _cont_; _cont_ = NULL)
+
 /* map.c */
 
 struct vmd_map_t {

@@ -276,7 +276,7 @@ track_flatten(track_t *track)
 		}
 
 	for (channel_t *tc = track->temp_channels; tc != NULL; tc = tc->next) {
-		for (bst_node_t *i = bst_begin(&tc->notes); i != bst_end(&tc->notes); i = bst_next(i)) {
+		BST_FOREACH (bst_node_t *i, &tc->notes) {
 			if (!note_ok(channel_note(i)))
 				return ERROR;
 		}
@@ -331,8 +331,7 @@ track_get_program(track_t *track){
 void
 track_set_program(track_t *track, int p){
 	track->primary_program = p;
-	bst_t *notes = &track->notes;
-	for (bst_node_t *i = bst_begin(notes); i != bst_end(notes); i = bst_next(i)) {
+	BST_FOREACH (bst_node_t *i, &track->notes) {
 		note_t *n = track_note(i);
 		//no need to isolate them, we operate on the whole track
 		map_set_range(&n->channel->ctrl[CCTRL_PROGRAM], n->on_time, n->off_time, p);
