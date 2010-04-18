@@ -243,6 +243,19 @@ chan_cmp(track_t *track, int c1, int c2)
 	return 0;
 }
 
+static void *
+note_ok_clb(note_t *note, void *note1)
+{
+	return note->pitch == ((note_t *)note1)->pitch ? note : NULL;
+}
+
+static vmd_bool_t
+note_ok(vmd_note_t *n)
+{
+	vmd_note_t *notes = track_range(n->track, n->on_time, n->off_time, n->pitch, n->pitch + 1);
+	return notes == n && n->next == NULL;
+}
+
 //TODO: what about killing empty temp channels?
 status_t
 track_flatten(track_t *track)
@@ -263,6 +276,10 @@ track_flatten(track_t *track)
 		}
 
 	for (channel_t *tc = track->temp_channels; tc != NULL; tc = tc->next) {
+		for (bst_node_t *i = bst_begin(&tc->notes); i != bst_end(&tc->notes); i = bst_next(i)) {
+			if (!note_ok(channel_note(i)))
+				return ERROR;
+		}
 		for (i = 0; i < channels; i++)
 			channel_join(&track->file->channel[channel[i]], tc);
 		if (!bst_empty(&tc->notes))
