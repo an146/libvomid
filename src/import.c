@@ -12,7 +12,7 @@
 
 #define ZERO_DTIME 1
 
-#define n_offed mark
+#define note_offed mark
 
 typedef struct noteon_t {
 	time_t time;
@@ -87,14 +87,14 @@ off_clb(note_t *note, void *_arg)
 	if (note->midipitch != arg->midipitch)
 		return NULL;
 
-	if (arg->time < note->off_time || note->n_offed < arg->offed) {
+	if (arg->time < note->off_time || note->note_offed < arg->offed) {
 		note_t n = *note;
 		n.off_time = arg->time;
 		n.off_vel = arg->vel;
 
 		erase_note(note);
 		if (n.on_time != n.off_time)
-			insert_note(&n)->n_offed = arg->offed;
+			insert_note(&n)->note_offed = arg->offed;
 	}
 	return arg;
 }
@@ -120,7 +120,7 @@ off(channel_t *channel, midipitch_t midipitch, uchar vel, int offed, import_ctx_
 		};
 
 		if (n.on_time != n.off_time)
-			insert_note(&n)->n_offed = offed;
+			insert_note(&n)->note_offed = offed;
 
 		on->vel = 0;
 	} else {
@@ -499,6 +499,14 @@ check_sha(import_ctx_t *ctx)
 	return !memcmp(ctx->sha, sha, sizeof(sha));
 }
 
+static void
+reset_marks(file_t *file)
+{
+	for (int i = 0; i < file->tracks; i++)
+		BST_FOREACH(bst_node_t *j, &file->track[i]->notes)
+			track_note(j)->mark = 0;
+}
+
 status_t
 file_import_f(file_t *file, FILE *f, vmd_bool_t *_sha_ok)
 {
@@ -562,5 +570,6 @@ file_import_f(file_t *file, FILE *f, vmd_bool_t *_sha_ok)
 	if (_sha_ok != NULL)
 		*_sha_ok = !trailing_stuff && check_sha(&ctx);
 	file->force_compatible = file_is_compatible(file);
+	reset_marks(file);
 	return file->tracks ? OK : ERROR;
 }
