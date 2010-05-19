@@ -1,4 +1,4 @@
-/* (C)opyright 2008 Anton N/home/anton/vomid/libvomid/include/vomid_local.h
+/* (C)opyright 2008 Anton Novikov
  * See LICENSE file for license details.
  *
  * vomid_local.h
