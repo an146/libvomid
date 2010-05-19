@@ -319,16 +319,6 @@ file_play_(file_t *file, time_t time, tevent_clb_t tevent_clb,
 				.write_event = write_noteon
 			});
 
-		/* track name */
-		{
-			uchar buf[MAX_EVENT_LENGTH];
-			int len;
-
-			const char *tn = file->track[i]->name;
-			midi_write_meta(META_TRACKNAME, (const uchar *)tn, strlen(tn), buf, &len);
-			tevent_clb(i, buf, len, arg);
-		}
-
 		/* end-of-track */
 		/*
 		heap_push(&ctx, &(event_t){

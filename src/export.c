@@ -3,6 +3,7 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 #include <assert.h>
 #include "vomid_local.h"
 #include "3rdparty/sha1/sha1.h"
@@ -97,6 +98,17 @@ note_clb(const note_t *note, void *arg)
 }
 
 static void
+write_tracknames(export_ctx_t *ctx)
+{
+	for (int i = 0; i < ctx->file->tracks; i++) {
+		FILE *f = ctx->track[i + NULL_TRACK].fbuf;
+		const char *tn = ctx->file->track[i]->name;
+		midi_fwrite_varlen(f, 0);
+		midi_fwrite_meta(f, META_TRACKNAME, (const uchar *)tn, strlen(tn));
+	}
+}
+
+static void
 write_notesystems(export_ctx_t *ctx)
 {
 	for (int i = 0; i < ctx->file->tracks; i++) {
@@ -128,6 +140,7 @@ file_export_f(file_t *file, FILE *out)
 		ctx.track[i].dtime = 0;
 	}
 
+	write_tracknames(&ctx);
 	write_notesystems(&ctx);
 	file_play_(file, 0, tevent_clb, dtime_clb, note_clb, &ctx);
 
