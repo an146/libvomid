@@ -58,22 +58,22 @@ read_timesig(uchar *data, int len)
 }
 
 static void
-write_ctrl(ctrl_info_t *info, int channel, int value, uchar *buf, int *len)
+write_ctrl(small_event_t *ev, ctrl_info_t *info, int channel, int value)
 {
-	*len = 3;
-	buf[0] = VOICE_CONTROLLER + channel;
-	buf[1] = info->midi_ctrl;
+	ev->len = 3;
+	ev->buf[0] = VOICE_CONTROLLER + channel;
+	ev->buf[1] = info->midi_ctrl;
 	assert(value >= 0 && value < 128);
-	buf[2] = value;
+	ev->buf[2] = value;
 }
 
 static void
-write_tempo(ctrl_info_t *info, int channel, int value, uchar *buf, int *len)
+write_tempo(small_event_t *ev, ctrl_info_t *info, int channel, int value)
 {
 	assert(value >= 0 && value < 0x1000000);
-	midi_write_meta(META_TEMPO, (uchar[]){value / 0x10000, value / 0x100, value}, 3, buf, len);
+	midi_write_meta(ev, META_TEMPO, (uchar[]){value / 0x10000, value / 0x100, value}, 3);
 	/*
-	*len = 4;
+	ev->len = 4;
 	buf[0] = 0xFF;
 	buf[3] = value % 0x100;
 	value /= 0x100;
@@ -84,29 +84,29 @@ write_tempo(ctrl_info_t *info, int channel, int value, uchar *buf, int *len)
 }
 
 static void
-write_timesig(ctrl_info_t *info, int channel, int value, uchar *buf, int *len)
+write_timesig(small_event_t *ev, ctrl_info_t *info, int channel, int value)
 {
-	midi_write_meta(META_TIMESIG, (uchar[]){value & 0xFF, value >> 8, 0x60, 8}, 4, buf, len);
+	midi_write_meta(ev, META_TIMESIG, (uchar[]){value & 0xFF, value >> 8, 0x60, 8}, 4);
 }
 
 static void
-write_program(ctrl_info_t *info, int channel, int value, uchar *buf, int *len)
+write_program(small_event_t *ev, ctrl_info_t *info, int channel, int value)
 {
-	*len = 2;
-	buf[0] = VOICE_PROGRAM + channel;
+	ev->len = 2;
+	ev->buf[0] = VOICE_PROGRAM + channel;
 	assert(value >= 0 && value < 128);
-	buf[1] = value;
+	ev->buf[1] = value;
 }
 
 static void
-write_pitchwheel(ctrl_info_t *info, int channel, int value, uchar *buf, int *len)
+write_pitchwheel(small_event_t *ev, ctrl_info_t *info, int channel, int value)
 {
-	*len = 3;
-	buf[0] = VOICE_PITCHWHEEL + channel;
+	ev->len = 3;
+	ev->buf[0] = VOICE_PITCHWHEEL + channel;
 	assert(value >= -0x2000 && value < 0x2000);
 	value += 0x2000;
-	buf[1] = value % 128;
-	buf[2] = value / 128;
+	ev->buf[1] = value % 128;
+	ev->buf[2] = value / 128;
 }
 
 static inline void
@@ -119,37 +119,37 @@ check_note(note_t *note)
 }
 
 void
-midi_write_noteon(note_t *note, uchar *buf, int *len)
+midi_write_noteon(small_event_t *ev, note_t *note)
 {
 	check_note(note);
 
-	*len = 3;
-	buf[0] = VOICE_NOTEON + note->channel->number;
-	buf[1] = note->midipitch;
-	buf[2] = note->on_vel;
+	ev->len = 3;
+	ev->buf[0] = VOICE_NOTEON + note->channel->number;
+	ev->buf[1] = note->midipitch;
+	ev->buf[2] = note->on_vel;
 }
 
 void
-midi_write_noteoff(note_t *note, uchar *buf, int *len)
+midi_write_noteoff(small_event_t *ev, note_t *note)
 {
 	check_note(note);
 
-	*len = 3;
-	buf[0] = VOICE_NOTEOFF + note->channel->number;
-	buf[1] = note->midipitch;
-	buf[2] = note->off_vel;
-
+	ev->len = 3;
+	ev->buf[0] = VOICE_NOTEOFF + note->channel->number;
+	ev->buf[1] = note->midipitch;
+	ev->buf[2] = note->off_vel;
 }
 
 void
-midi_write_meta(uchar type, const uchar *data, int len, uchar *buf, int *ev_len)
+midi_write_meta(small_event_t *ev, uchar type, const uchar *data, int len)
 {
-	assert(len < 128);
-	*ev_len = 3 + len;
-	buf[0] = 0xFF;
-	buf[1] = type;
-	buf[2] = len;
-	memcpy(buf + 3, data, len);
+	ev->len = 3 + len;
+	assert(len < 128 && ev->len < LENGTH(ev->buf));
+
+	ev->buf[0] = 0xFF;
+	ev->buf[1] = type;
+	ev->buf[2] = len;
+	memcpy(ev->buf + 3, data, len);
 }
 
 void

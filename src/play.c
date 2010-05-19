@@ -7,7 +7,6 @@
 #include "vomid_local.h"
 
 #define MAX_EVENTS (FCTRLS + MAX_TRACKS * (2 * NOTES + TCTRLS) + CHANNELS * CCTRLS)
-#define MAX_EVENT_LENGTH 1024
 
 typedef struct event_t event_t;
 typedef struct play_ctx_t play_ctx_t;
@@ -21,7 +20,7 @@ struct event_t {
 	bst_node_t *node;
 	ctrl_ctx_t *cctx;
 	void (*move_on)(event_t *, play_ctx_t *);
-	void (*write_event)(event_t *, uchar *, int *, play_ctx_t *);
+	void (*write_event)(small_event_t *, event_t *, play_ctx_t *);
 };
 
 struct ctrl_ctx_t {
@@ -127,13 +126,14 @@ flush_cctrl_cache(play_ctx_t *ctx, int ch)
 {
 	for (int i = 0; i < CCTRLS; i++) {
 		ctrl_ctx_t *cctx = &ctx->cctrl[ch][i];
-		if (cctx->write_cache != NULL && cctx->value != map_value(cctx->write_cache)) {
-			uchar buf[MAX_EVENT_LENGTH];
-			int len;
-
-			cctx->value = map_value(cctx->write_cache);
-			cctx->ctrl_info->write(cctx->ctrl_info, ch, map_value(cctx->write_cache), buf, &len);
-			ctx->tevent_clb(ctx->channel_owner[ch], buf, len, ctx->arg);
+		if (cctx->write_cache != NULL) {
+			int v = map_value(cctx->write_cache);
+			if (v != cctx->value) {
+				small_event_t ev;
+				cctx->value = v;
+				cctx->ctrl_info->write(&ev, cctx->ctrl_info, ch, v);
+				ctx->tevent_clb(ctx->channel_owner[ch], &ev, ctx->arg);
+			}
 		}
 		cctx->write_cache = NULL;
 	}
@@ -152,46 +152,44 @@ write_tvalues(play_ctx_t *ctx, int ch, int prev_owner)
 
 		int value = ctx->file->track[owner]->value[i];
 		if (value != prev_value) {
-			uchar buf[MAX_EVENT_LENGTH];
-			int len;
-
-			tvalue_info[i].write(&tvalue_info[i], ch, value, buf, &len);
-			ctx->tevent_clb(owner, buf, len, ctx->arg);
+			small_event_t ev;
+			tvalue_info[i].write(&ev, &tvalue_info[i], ch, value);
+			ctx->tevent_clb(owner, &ev, ctx->arg);
 		}
 	}
 }
 
 static void
-write_ctrl(event_t *ev, uchar *buf, int *len, play_ctx_t *ctx)
+write_ctrl(small_event_t *evb, event_t *ev, play_ctx_t *ctx)
 {
 	if (ev->channel >= 0 && ctx->channel_notes[ev->channel] == 0) {
 		// cctrl without effect
 		ev->cctx->write_cache = ev->node;
-		*len = -1;
-	}
-	else {
+		evb->len = -1;
+	} else {
 		if (ev->channel >= 0)
 			ev->track = ctx->channel_owner[ev->channel]; //cctrl
 
 		ctrl_info_t *ci = ev->cctx->ctrl_info;
-		if (ev->cctx->value != map_value(ev->node)) {
-			ev->cctx->value = map_value(ev->node);
-			ci->write(ci, ev->channel, map_value(ev->node), buf, len);
+		int v = map_value(ev->node);
+		if (ev->cctx->value != v) {
+			ev->cctx->value = v;
+			ci->write(evb, ci, ev->channel, v);
 		}
 	}
 }
 
 static void
-write_noteoff(event_t *ev, uchar *buf, int *len, play_ctx_t *ctx)
+write_noteoff(small_event_t *evb, event_t *ev, play_ctx_t *ctx)
 {
 	note_t *note = track_note(ev->node);
 
-	midi_write_noteoff(note, buf, len);
+	midi_write_noteoff(evb, note);
 	ctx->channel_notes[note->channel->number]--;
 }
 
 static void
-write_noteon(event_t *ev, uchar *buf, int *len, play_ctx_t *ctx)
+write_noteon(small_event_t *evb, event_t *ev, play_ctx_t *ctx)
 {
 	note_t *note = track_note(ev->node);
 	int channel = note->channel->number;
@@ -208,7 +206,7 @@ write_noteon(event_t *ev, uchar *buf, int *len, play_ctx_t *ctx)
 
 	if (ctx->note_clb)
 		ctx->note_clb(note, ctx->arg);
-	midi_write_noteon(note, buf, len);
+	midi_write_noteon(evb, note);
 	ctx->channel_notes[channel]++;
 
 	assert(ev->time < note->off_time); /* the operation below doesn't change ev_heap[0] */
@@ -234,12 +232,10 @@ write_tctrl(event_t *ev, uchar *buf, int *len)
 static void
 process_event(event_t *ev, play_ctx_t *ctx)
 {
-	uchar buf[MAX_EVENT_LENGTH];
-	int len;
-
-	ev->write_event(ev, buf, &len, ctx);
-	if (len > 0)
-		ctx->tevent_clb(ev->track, buf, len, ctx->arg);
+	small_event_t evb;
+	ev->write_event(&evb, ev, ctx);
+	if (evb.len > 0)
+		ctx->tevent_clb(ev->track, &evb, ctx->arg);
 	ev->move_on(ev, ctx);
 }
 
@@ -360,10 +356,10 @@ struct file_play_args {
 };
 
 static void
-tevent_clb(int track, unsigned char *event, size_t len, void *_args)
+tevent_clb(int track, small_event_t *ev, void *_args)
 {
 	struct file_play_args *args = _args;
-	args->event_clb(event, len, args->arg);
+	args->event_clb(ev->buf, ev->len, args->arg);
 }
 
 static status_t

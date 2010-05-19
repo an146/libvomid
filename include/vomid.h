@@ -102,20 +102,6 @@ enum {
 	VMD_CCTRLS
 };
 
-struct vmd_ctrl_info_t {
-	const char  *name;
-	int          default_value;
-	int          midi_ctrl;
-	int          midi_meta;
-	int  (*read)(unsigned char *, int); /* used only for metas */
-	void (*write)(vmd_ctrl_info_t *, int, int, unsigned char *, int *);
-};
-
-extern vmd_ctrl_info_t vmd_tvalue_info[VMD_TVALUES];
-extern vmd_ctrl_info_t vmd_fctrl_info[VMD_FCTRLS];
-extern vmd_ctrl_info_t vmd_tctrl_info[VMD_TCTRLS];
-extern vmd_ctrl_info_t vmd_cctrl_info[VMD_CCTRLS];
-
 extern const char *vmd_gm_program_name[VMD_PROGRAMS];
 
 void vmd_notes_off(void);

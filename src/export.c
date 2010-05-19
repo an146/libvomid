@@ -65,13 +65,13 @@ cat(FILE *src, FILE *dst, SHA_CTX *sha_ctx)
 }
 
 static void
-tevent_clb(int track, unsigned char *event, size_t len, void *arg)
+tevent_clb(int track, small_event_t *ev, void *arg)
 {
 	export_ctx_t *ctx = arg;
 	track_export_ctx_t *tctx = &ctx->track[track + NULL_TRACK];
 
 	midi_fwrite_varlen(tctx->fbuf, tctx->dtime);
-	fwrite(event, 1, len, tctx->fbuf);
+	fwrite(ev->buf, 1, ev->len, tctx->fbuf);
 	tctx->dtime = 0;
 }
 

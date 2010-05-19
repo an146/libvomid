@@ -199,6 +199,7 @@
 #define SHA1_SIZE VMD_SHA1_SIZE
 #define sleep vmd_sleep
 #define sleep_till vmd_sleep_till
+#define small_event_t vmd_small_event_t
 #define stack_block_t vmd_stack_block_t
 #define stack_fini vmd_stack_fini
 #define stack_init vmd_stack_init

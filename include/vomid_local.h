@@ -15,6 +15,7 @@ typedef struct vmd_channel_rev_t vmd_channel_rev_t;
 typedef struct vmd_track_note_t vmd_track_note_t;
 typedef struct vmd_track_rev_t vmd_track_rev_t;
 typedef struct vmd_platform_t vmd_platform_t;
+typedef struct vmd_small_event_t vmd_small_event_t;
 
 #define VMD_SHA1_SIZE 20
 
@@ -58,13 +59,35 @@ enum {
 
 /* midi.c */
 
+struct vmd_ctrl_info_t {
+	const char  *name;
+	int          default_value;
+	int          midi_ctrl;
+	int          midi_meta;
+	int  (*read)(unsigned char *, int); /* used only for metas */
+	void (*write)(vmd_small_event_t *, vmd_ctrl_info_t *, int, int);
+};
+
+extern vmd_ctrl_info_t vmd_tvalue_info[VMD_TVALUES];
+extern vmd_ctrl_info_t vmd_fctrl_info[VMD_FCTRLS];
+extern vmd_ctrl_info_t vmd_tctrl_info[VMD_TCTRLS];
+extern vmd_ctrl_info_t vmd_cctrl_info[VMD_CCTRLS];
+
 extern const uchar vmd_magic_mthd[4];
 extern const uchar vmd_magic_mtrk[4];
 extern const uchar vmd_magic_vomid[4];
 
-void vmd_midi_write_noteon(note_t *note, uchar *buf, int *len);
-void vmd_midi_write_noteoff(note_t *note, uchar *buf, int *len);
-void vmd_midi_write_meta(uchar type, const uchar *data, int len, uchar *buf, int *ev_len);
+#define MAX_SMALL_EVENT_LENGTH 32
+
+struct vmd_small_event_t
+{
+	uchar buf[MAX_SMALL_EVENT_LENGTH];
+	int len;
+};
+
+void vmd_midi_write_noteon(small_event_t *ev, note_t *note);
+void vmd_midi_write_noteoff(small_event_t *ev, note_t *note);
+void vmd_midi_write_meta(small_event_t *ev, uchar type, const uchar *data, int len);
 
 void vmd_midi_fwrite_varlen(FILE *out, time_t time);
 void vmd_midi_fwrite_meta_header(FILE *out, uchar type, int len);
@@ -203,7 +226,7 @@ struct vmd_file_rev_t {
 
 /* play.c */
 
-typedef void         (*vmd_tevent_clb_t)(int track, uchar *event, size_t len, void *arg);
+typedef void         (*vmd_tevent_clb_t)(int track, vmd_small_event_t *ev, void *arg);
 typedef vmd_status_t (*vmd_dtime_clb_t)(vmd_time_t delay, void *arg);
 typedef void         (*vmd_note_clb_t)(const note_t *note, void *arg);
 
