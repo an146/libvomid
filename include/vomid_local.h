@@ -231,7 +231,7 @@ typedef vmd_status_t (*vmd_dtime_clb_t)(vmd_time_t delay, void *arg);
 typedef void         (*vmd_note_clb_t)(const note_t *note, void *arg);
 
 vmd_status_t         vmd_file_play_(vmd_file_t *file, vmd_time_t time, vmd_tevent_clb_t voice_clb,
-						vmd_dtime_clb_t dtime_clb, vmd_note_clb_t note_clb, void *arg);
+						vmd_dtime_clb_t dtime_clb, vmd_note_clb_t note_clb, void *arg, vmd_play_ctx_t **pctx);
 
 /* bst.c */
 

@@ -183,6 +183,7 @@
 #define platform_alsa vmd_platform_alsa
 #define platform_t vmd_platform_t
 #define platform_win32 vmd_platform_win32
+#define play_ctx_t vmd_play_ctx_t
 #define pool_alloc vmd_pool_alloc
 #define pool_chunk_t vmd_pool_chunk_t
 #define pool_fini vmd_pool_fini

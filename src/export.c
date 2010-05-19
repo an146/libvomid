@@ -142,7 +142,7 @@ file_export_f(file_t *file, FILE *out)
 
 	write_tracknames(&ctx);
 	write_notesystems(&ctx);
-	file_play_(file, 0, tevent_clb, dtime_clb, note_clb, &ctx);
+	file_play_(file, 0, tevent_clb, dtime_clb, note_clb, &ctx, NULL);
 
 	SHA_CTX sha_ctx;
 	SHA1_Init(&sha_ctx);

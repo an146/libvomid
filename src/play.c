@@ -9,7 +9,6 @@
 #define MAX_EVENTS (FCTRLS + MAX_TRACKS * (2 * NOTES + TCTRLS) + CHANNELS * CCTRLS)
 
 typedef struct event_t event_t;
-typedef struct play_ctx_t play_ctx_t;
 typedef struct ctrl_ctx_t ctrl_ctx_t;
 
 struct event_t {
@@ -140,6 +139,14 @@ flush_cctrl_cache(play_ctx_t *ctx, int ch)
 }
 
 static void
+write_tvalue(play_ctx_t *ctx, int ch, int tv, int value)
+{
+	small_event_t ev;
+	tvalue_info[tv].write(&ev, &tvalue_info[tv], ch, value);
+	ctx->tevent_clb(ctx->channel_owner[ch], &ev, ctx->arg);
+}
+
+static void
 write_tvalues(play_ctx_t *ctx, int ch, int prev_owner)
 {
 	int owner = ctx->channel_owner[ch];
@@ -151,11 +158,8 @@ write_tvalues(play_ctx_t *ctx, int ch, int prev_owner)
 			prev_value = tvalue_info[i].default_value;
 
 		int value = ctx->file->track[owner]->value[i];
-		if (value != prev_value) {
-			small_event_t ev;
-			tvalue_info[i].write(&ev, &tvalue_info[i], ch, value);
-			ctx->tevent_clb(owner, &ev, ctx->arg);
-		}
+		if (value != prev_value)
+			write_tvalue(ctx, ch, i, value);
 	}
 }
 
@@ -257,7 +261,7 @@ push_map(play_ctx_t *ctx, event_t *ev, bst_t *bst, time_t time)
 //TODO: tctrls
 status_t
 file_play_(file_t *file, time_t time, tevent_clb_t tevent_clb,
-		dtime_clb_t dtime_clb, note_clb_t note_clb, void *arg)
+		dtime_clb_t dtime_clb, note_clb_t note_clb, void *arg, play_ctx_t **pctx)
 {
 	status_t ret = OK;
 	play_ctx_t ctx = {
@@ -269,6 +273,8 @@ file_play_(file_t *file, time_t time, tevent_clb_t tevent_clb,
 	};
 	int i, j;
 
+	if (pctx != NULL)
+		*pctx = &ctx;
 	stack_init(&ctx.ev_pool, sizeof(event_t));
 	for (i = 0; i < CHANNELS; i++)
 		ctx.channel_owner[i] = -1;
@@ -376,7 +382,7 @@ dtime_clb(time_t dtime, void *_args)
 }
 
 status_t
-file_play(file_t *file, time_t time, event_clb_t event_clb, delay_clb_t delay_clb, void *arg)
+file_play(file_t *file, time_t time, event_clb_t event_clb, delay_clb_t delay_clb, void *arg, play_ctx_t **pctx)
 {
 	struct file_play_args args = {
 		.file = file,
@@ -385,5 +391,5 @@ file_play(file_t *file, time_t time, event_clb_t event_clb, delay_clb_t delay_cl
 		.delay_clb = delay_clb,
 		.arg = arg
 	};
-	return file_play_(file, time, tevent_clb, dtime_clb, NULL, &args);
+	return file_play_(file, time, tevent_clb, dtime_clb, NULL, &args, pctx);
 }

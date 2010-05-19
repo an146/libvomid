@@ -78,6 +78,6 @@ main(int argc, char **argv)
 	vmd_enum_devices(VMD_OUTPUT_DEVICE, set_enum_clb, argv[1]);
 	if (!device_set)
 		die("Could not open output port\n");
-	vmd_file_play(&file, 0, event_clb, delay_clb, &file);
+	vmd_file_play(&file, 0, event_clb, delay_clb, &file, NULL);
 	vmd_file_fini(&file);
 }

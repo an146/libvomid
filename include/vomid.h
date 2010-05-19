@@ -30,6 +30,7 @@ typedef struct vmd_map_bstdata_t vmd_map_bstdata_t;
 typedef struct vmd_pool_t vmd_pool_t;
 typedef struct vmd_file_rev_t vmd_file_rev_t;
 typedef struct vmd_measure_t vmd_measure_t;
+typedef struct vmd_play_ctx_t vmd_play_ctx_t;
 
 typedef int vmd_status_t;
 #define VMD_ERROR (-1)
@@ -321,7 +322,7 @@ vmd_status_t vmd_file_export_f(vmd_file_t *, FILE *);
 typedef void (*vmd_event_clb_t)(unsigned char *, size_t, void *);
 typedef vmd_status_t (*vmd_delay_clb_t)(vmd_time_t delay, int tempo, void *);
 
-vmd_status_t vmd_file_play(vmd_file_t *, vmd_time_t, vmd_event_clb_t, vmd_delay_clb_t, void *);
+vmd_status_t vmd_file_play(vmd_file_t *, vmd_time_t, vmd_event_clb_t, vmd_delay_clb_t, void *, vmd_play_ctx_t **);
 
 /* note.c */
 
