@@ -24,20 +24,6 @@ set (SOURCES
 	src/track.c
 )
 
-set (TESTS
-	test/bst.c
-	test/file.c
-	test/import.c
-	test/map.c
-	test/native-check.c
-	test/track.c
-)
-
-set (TEST_SOURCES
-	test/tester.c
-	${TESTS}
-)
-
 include_directories ("include")
 
 require_c99 ()
