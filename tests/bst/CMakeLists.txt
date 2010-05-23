@@ -19,8 +19,11 @@ set (SOURCES
 	setup.c
 	teardown.c
 
-	traversal.c
+	erase.c
 	revert.c
+	search.c
+	traversal.c
+	update.c
 )
 
-process_tests (SOURCES ${SOURCES} INPUTS ${INPUTS})
+process_tests (INPUTS ${INPUTS} SOURCES ${SOURCES})
