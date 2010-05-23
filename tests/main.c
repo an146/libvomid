@@ -1,3 +1,4 @@
+#include "vomid_test.h"
 #include <stdarg.h>
 #include <stdio.h>  /* fprintf */
 #include <stdlib.h> /* exit */
@@ -30,6 +31,15 @@ main(int argc, char **argv)
 {
 	if (argc < 2)
 		return 1;
+
+	if (argc >= 3) {
+		FILE *in_file = freopen(argv[2], "r", stdin);
+		if (in_file == NULL) {
+			fprintf(stderr, "failed to open: %s\n", argv[2]);
+			ASSERT(in_file != NULL);
+		}
+	}
+			
 
 #define SETUP setup()
 #define TEARDOWN teardown()

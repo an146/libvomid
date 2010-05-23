@@ -57,5 +57,6 @@ endif ()
 add_executable (play examples/play.c)
 target_link_libraries (play libvomid)
 
-enable_testing ()
+include (CTest)
+enable_testing()
 add_subdirectory (tests)
