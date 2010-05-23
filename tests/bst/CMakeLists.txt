@@ -1,6 +1,7 @@
 include (../../cmake/process_tests.cmake)
 
 set (TEST_SOURCES
+	common.c
 	setup.c
 	teardown.c
 

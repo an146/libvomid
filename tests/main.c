@@ -1,3 +1,6 @@
+#include <stdarg.h>
+#include <stdio.h>  /* fprintf */
+#include <stdlib.h> /* exit */
 #include <string.h> /* strcmp */
 
 #define SETUP void setup()
@@ -7,6 +10,20 @@
 #undef SETUP
 #undef TEARDOWN
 #undef TEST
+
+void
+fail(const char *file, int line, const char *fmt, ...)
+{
+	va_list va;
+
+	fprintf(stderr, "%s:%i: ", file, line);
+
+	va_start(va, fmt);
+	vfprintf(stderr, fmt, va);
+	va_end(va);
+
+	exit(1);
+}
 
 int
 main(int argc, char **argv)

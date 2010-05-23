@@ -9,7 +9,7 @@ macro (process_tests)
 	file (REMOVE ${TESTS_HEADER})
 	list (FIND TEST_SOURCES setup.c SETUP_POS)
 	list (FIND TEST_SOURCES teardown.c TEARDOWN_POS)
-	list (REMOVE_ITEM TEST_SOURCES setup.c teardown.c)
+	list (REMOVE_ITEM TEST_SOURCES common.c setup.c teardown.c)
 
 	if (NOT ${SETUP_POS} EQUAL -1)
 		file (APPEND ${TESTS_HEADER} "SETUP;\n")
