@@ -12,8 +12,8 @@ extern "C" {
 #include <stdio.h>  /* FILE */
 #include <stdlib.h> /* size_t */
 #include <stddef.h> /* offsetof */
-#include <stdint.h> /* uint16_t */
 #include <limits.h> /* MAX_INT */
+#include "stdint_wrap.h" /* uint16_t */
 
 typedef struct vmd_ctrl_info_t vmd_ctrl_info_t;
 typedef struct vmd_notesystem_t vmd_notesystem_t;
