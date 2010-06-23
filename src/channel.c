@@ -88,6 +88,14 @@ channel_fini(channel_t *channel)
 		map_fini(&channel->ctrl[i]);
 }
 
+channel_t *
+channel_create(int number)
+{
+        channel_t *ret = malloc(sizeof(*ret));
+        channel_init(ret, number);
+        return ret;
+}
+
 void
 channel_commit(channel_t *channel, channel_rev_t *rev)
 {
@@ -111,4 +119,10 @@ channel_update(channel_t *channel, channel_rev_t *rev)
 	}
 	for (int i = 0; i < CCTRLS; i++)
 		bst_update(&channel->ctrl[i].bst, rev->ctrl[i]);
+}
+
+note_t *
+channel_note(bst_node_t *node)
+{
+        return *(note_t **)node->data;
 }

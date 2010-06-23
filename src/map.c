@@ -141,3 +141,18 @@ map_copy(map_t *map1, time_t beg1, time_t end1, map_t *map2, time_t beg2)
 			.value = map_value(i)
 		});
 }
+
+time_t
+map_time(bst_node_t *node)
+{
+        if (bst_node_is_end(node))
+                return VMD_MAX_TIME;
+
+        return ((map_bstdata_t *)node->data)->time;
+}
+
+int
+map_value(bst_node_t *node)
+{
+        return ((map_bstdata_t *)node->data)->value;
+}

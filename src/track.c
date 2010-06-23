@@ -9,7 +9,7 @@
 static int
 cmp(const void *a, const void *b)
 {
-	return vmd_note_cmp(a, b);
+        return note_cmp(a, b);
 }
 
 static note_t *
@@ -89,6 +89,14 @@ track_range(track_t *track, time_t s, time_t e, pitch_t p_beg, pitch_t p_end)
 	};
 	track_for_range(track, s, e, range_clb, &arg);
 	return arg.list;
+}
+
+track_t *
+track_create(file_t *file, chanmask_t chanmask)
+{
+        track_t *ret = (track_t *)malloc(sizeof(*ret));
+        track_init(ret, file, chanmask);
+        return ret;
 }
 
 void
@@ -176,6 +184,12 @@ track_insert(track_t *track, time_t beg, time_t end, pitch_t pitch)
 	return note;
 }
 
+note_t *
+track_note(bst_node_t *node)
+{
+        return (note_t *)node->data;
+}
+
 static bool_t
 compatible(note_t *n1, note_t *n2)
 {
@@ -249,10 +263,10 @@ note_ok_clb(note_t *note, void *note1)
 	return note->pitch == ((note_t *)note1)->pitch ? note : NULL;
 }
 
-static vmd_bool_t
-note_ok(vmd_note_t *n)
+static bool_t
+note_ok(note_t *n)
 {
-	vmd_note_t *notes = track_range(n->track, n->on_time, n->off_time, n->pitch, n->pitch + 1);
+        note_t *notes = track_range(n->track, n->on_time, n->off_time, n->pitch, n->pitch + 1);
 	return notes == n && n->next == NULL;
 }
 

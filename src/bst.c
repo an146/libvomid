@@ -409,6 +409,11 @@ bst_fini(bst_t *tree)
 	}
 }
 
+size_t
+bst_size(bst_t *tree) {
+        return tree->tree_size;
+}
+
 void
 bst_clear(bst_t *tree)
 {
@@ -537,6 +542,16 @@ bst_bound(bst_t *tree, const void *data, int bound)
 		dir = !good;
 	}
 	return ret;
+}
+
+bst_node_t *
+bst_lower_bound(bst_t *tree, const void *data) {
+        return bst_bound(tree, data, 0);
+}
+
+bst_node_t *
+bst_upper_bound(bst_t *tree, const void *data) {
+        return bst_bound(tree, data, 1);
 }
 
 static void

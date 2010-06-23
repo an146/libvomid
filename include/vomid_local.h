@@ -171,14 +171,7 @@ struct vmd_channel_rev_t {
 void        vmd_channel_init(vmd_channel_t *, int number);
 void        vmd_channel_fini(vmd_channel_t *);
 
-static inline vmd_channel_t *
-vmd_channel_create(int number)
-{
-	vmd_channel_t *ret = malloc(sizeof(*ret));
-	vmd_channel_init(ret, number);
-	return ret;
-}
-
+vmd_channel_t *vmd_channel_create(int number);
 VMD_DEFINE_DESTROY(channel) // vmd_channel_destroy
 
 void *      vmd_channel_range(vmd_channel_t *, vmd_time_t, vmd_time_t, vmd_note_callback_t, void *);
@@ -186,11 +179,7 @@ void *      vmd_channel_range(vmd_channel_t *, vmd_time_t, vmd_time_t, vmd_note_
 void        vmd_channel_commit(vmd_channel_t *, vmd_channel_rev_t *);
 void        vmd_channel_update(vmd_channel_t *, vmd_channel_rev_t *);
 
-static inline vmd_note_t *
-vmd_channel_note(vmd_bst_node_t *node)
-{
-	return *(vmd_note_t **)node->data;
-}
+vmd_note_t *vmd_channel_note(vmd_bst_node_t *node);
 
 /* track.c */
 

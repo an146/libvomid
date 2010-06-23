@@ -169,11 +169,7 @@ struct vmd_bst_t {
 void vmd_bst_init(vmd_bst_t *, size_t, size_t, vmd_bst_cmp_t, vmd_bst_upd_t);
 void vmd_bst_fini(vmd_bst_t *);
 
-static inline size_t
-vmd_bst_size(vmd_bst_t *tree) {
-	return tree->tree_size;
-}
-
+size_t          vmd_bst_size(vmd_bst_t *tree);
 void            vmd_bst_clear(vmd_bst_t *);
 vmd_bst_node_t *vmd_bst_insert(vmd_bst_t *, const void *);
 vmd_bst_node_t *vmd_bst_erase(vmd_bst_t *, vmd_bst_node_t *);
@@ -181,18 +177,9 @@ void            vmd_bst_erase_range(vmd_bst_t *, vmd_bst_node_t *, vmd_bst_node_
 void            vmd_bst_change(vmd_bst_t *, vmd_bst_node_t *, const void *);
 
 vmd_bst_node_t *vmd_bst_find(vmd_bst_t *tree, const void *data);
-
 vmd_bst_node_t *vmd_bst_bound(vmd_bst_t *tree, const void *data, int bound);
-
-static inline vmd_bst_node_t *
-vmd_bst_lower_bound(vmd_bst_t *tree, const void *data) {
-	return vmd_bst_bound(tree, data, 0);
-}
-
-static inline vmd_bst_node_t *
-vmd_bst_upper_bound(vmd_bst_t *tree, const void *data) {
-	return vmd_bst_bound(tree, data, 1);
-}
+vmd_bst_node_t *vmd_bst_lower_bound(vmd_bst_t *tree, const void *data);
+vmd_bst_node_t *vmd_bst_upper_bound(vmd_bst_t *tree, const void *data);
 
 vmd_bst_rev_t  *vmd_bst_commit(vmd_bst_t *);
 vmd_bst_node_t *vmd_bst_revert(vmd_bst_t *);
@@ -229,20 +216,8 @@ void vmd_map_add(vmd_map_t *, vmd_time_t, vmd_time_t, int);
 
 vmd_bool_t vmd_map_eq(vmd_map_t *, vmd_map_t *, vmd_time_t, vmd_time_t);
 
-static inline vmd_time_t
-vmd_map_time(vmd_bst_node_t *node)
-{
-	if (vmd_bst_node_is_end(node))
-		return VMD_MAX_TIME;
-
-	return ((vmd_map_bstdata_t *)node->data)->time;
-}
-
-static inline int
-vmd_map_value(vmd_bst_node_t *node)
-{
-	return ((vmd_map_bstdata_t *)node->data)->value;
-}
+vmd_time_t vmd_map_time(vmd_bst_node_t *node);
+int        vmd_map_value(vmd_bst_node_t *node);
 
 /* channel.c */
 
@@ -397,25 +372,14 @@ void vmd_track_clear(vmd_track_t *);
 int  vmd_track_get_program(vmd_track_t *);
 void vmd_track_set_program(vmd_track_t *, int);
 
-static inline vmd_track_t *
-vmd_track_create(vmd_file_t *file, vmd_chanmask_t chanmask)
-{
-	vmd_track_t *ret = (vmd_track_t *)malloc(sizeof(*ret));
-	vmd_track_init(ret, file, chanmask);
-	return ret;
-}
-
+vmd_track_t *vmd_track_create(vmd_file_t *file, vmd_chanmask_t chanmask);
 VMD_DEFINE_DESTROY(track) // vmd_track_destroy
 
 void *      vmd_track_for_range(vmd_track_t *, vmd_time_t, vmd_time_t, vmd_note_callback_t, void *);
 vmd_note_t *vmd_track_range(vmd_track_t *, vmd_time_t, vmd_time_t, vmd_pitch_t, vmd_pitch_t);
 vmd_note_t *vmd_track_insert(vmd_track_t *, vmd_time_t, vmd_time_t, vmd_pitch_t);
 
-static inline vmd_note_t *
-vmd_track_note(vmd_bst_node_t *node)
-{
-	return (vmd_note_t *)node->data;
-}
+vmd_note_t *vmd_track_note(vmd_bst_node_t *node);
 
 vmd_bool_t      vmd_track_is_drums(const vmd_track_t *);
 vmd_time_t      vmd_track_length(const vmd_track_t *);
