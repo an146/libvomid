@@ -1,6 +1,6 @@
 macro (require_c99)
 	# enabling c99 in gcc
-	string (REGEX MATCH "gcc$" GCC "${CMAKE_C_COMPILER}")
+	string (REGEX MATCH "gcc(\\.exe)?$" GCC "${CMAKE_C_COMPILER}")
 	if (GCC)
 		set(CMAKE_C_FLAGS "-std=c99")
 	endif()
