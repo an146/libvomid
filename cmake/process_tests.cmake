@@ -1,4 +1,4 @@
-include (${CMAKE_SOURCE_DIR}/cmake/parse_arguments.cmake)
+include (${LIBVOMID_DIR}/cmake/parse_arguments.cmake)
 macro (process_tests)
 	get_filename_component (SUITE ${CMAKE_CURRENT_SOURCE_DIR} NAME_WE)
 

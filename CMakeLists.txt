@@ -3,6 +3,8 @@ include (cmake/require_c99.cmake)
 cmake_minimum_required (VERSION 2.8)
 project (libvomid)
 
+set (LIBVOMID_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+
 set (SOURCES
 	src/3rdparty/sha1/sha1.c
 	src/bst.c
