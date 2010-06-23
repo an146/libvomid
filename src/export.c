@@ -32,7 +32,8 @@ static void
 write(FILE *out, const uchar *buf, size_t size, SHA_CTX *sha_ctx)
 {
 	fwrite(buf, 1, size, out);
-	SHA1_Update(sha_ctx, buf, size);
+	if (sha_ctx != NULL)
+		SHA1_Update(sha_ctx, buf, size);
 }
 
 static void
