@@ -3,7 +3,6 @@ macro (process_tests)
 	get_filename_component (SUITE ${CMAKE_CURRENT_SOURCE_DIR} NAME_WE)
 
 	parse_arguments (TEST "SOURCES;INPUTS" "" ${ARGN})
-	message (STATUS ${TEST_SOURCES})
 	set (TESTS_HEADER ${CMAKE_CURRENT_BINARY_DIR}/tests.h)
 	include_directories (${CMAKE_CURRENT_BINARY_DIR})
 
