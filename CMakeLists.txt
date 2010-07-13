@@ -26,6 +26,14 @@ set (SOURCES
 	src/track.c
 )
 
+set (HEADERS
+	include/stdint_wrap.h
+	include/vomid.h
+	include/vomid_local.h
+	include/vomid_shortnames.h
+	include/vomid_test.h
+)
+
 include_directories ("include")
 
 require_c99 ()
@@ -44,7 +52,7 @@ configure_file (
 )
 include_directories (${PROJECT_BINARY_DIR})
 
-add_library (libvomid ${SOURCES})
+add_library (libvomid ${SOURCES} ${HEADERS})
 set_target_properties (libvomid PROPERTIES OUTPUT_NAME vomid)
 
 if (HAL_ALSA)
