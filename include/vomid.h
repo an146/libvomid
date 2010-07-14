@@ -70,7 +70,7 @@ typedef uint16_t vmd_chanmask_t;
 #define VMD_TEMPO_BPM(midi) (60 * 1000000 / (midi))
 
 int vmd_timesig_construct(int, int);
-#define VMD_TIMESIG(numer, denom) vmd_timesig_construct((numer), (denom))
+#define VMD_TIMESIG vmd_timesig_construct
 #define VMD_TIMESIG_NUMER(timesig) ((timesig) & 0xFF)
 #define VMD_TIMESIG_DENOM(timesig) (1 << ((timesig) >> 8))
 
