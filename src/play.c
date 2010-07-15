@@ -6,7 +6,7 @@
 #include <string.h>
 #include "vomid_local.h"
 
-#define MAX_EVENTS (FCTRLS + MAX_TRACKS * (2 * NOTES + TCTRLS) + CHANNELS * CCTRLS)
+#define MAX_EVENTS (FCTRLS + MAX_TRACKS * (2 * NOTES) + CHANNELS * CCTRLS)
 
 typedef struct event_t event_t;
 typedef struct ctrl_ctx_t ctrl_ctx_t;
@@ -24,6 +24,7 @@ struct event_t {
 
 struct ctrl_ctx_t {
 	ctrl_info_t *ctrl_info;
+	int type;
 	bst_node_t *write_cache;
 	int value;
 };
@@ -47,9 +48,10 @@ struct play_ctx_t {
 };
 
 static void
-ctrl_ctx_init(ctrl_ctx_t *ctrl_ctx, ctrl_info_t *ctrl_info)
+ctrl_ctx_init(ctrl_ctx_t *ctrl_ctx, ctrl_info_t *ctrl_info, int type)
 {
 	ctrl_ctx->ctrl_info = ctrl_info;
+	ctrl_ctx->type = type;
 	ctrl_ctx->write_cache = NULL;
 	ctrl_ctx->value = ctrl_info->default_value;
 }
@@ -130,36 +132,11 @@ flush_cctrl_cache(play_ctx_t *ctx, int ch)
 			if (v != cctx->value) {
 				small_event_t ev;
 				cctx->value = v;
-				cctx->ctrl_info->write(&ev, cctx->ctrl_info, ch, v);
+				cctx->ctrl_info->write(&ev, ch, i, v);
 				ctx->tevent_clb(ctx->channel_owner[ch], &ev, ctx->arg);
 			}
 		}
 		cctx->write_cache = NULL;
-	}
-}
-
-static void
-write_tvalue(play_ctx_t *ctx, int ch, int tv, int value)
-{
-	small_event_t ev;
-	tvalue_info[tv].write(&ev, &tvalue_info[tv], ch, value);
-	ctx->tevent_clb(ctx->channel_owner[ch], &ev, ctx->arg);
-}
-
-static void
-write_tvalues(play_ctx_t *ctx, int ch, int prev_owner)
-{
-	int owner = ctx->channel_owner[ch];
-	for (int i = 0; i < TVALUES; i++) {
-		int prev_value;
-		if (prev_owner >= 0)
-			prev_value = ctx->file->track[prev_owner]->value[i];
-		else
-			prev_value = tvalue_info[i].default_value;
-
-		int value = ctx->file->track[owner]->value[i];
-		if (value != prev_value)
-			write_tvalue(ctx, ch, i, value);
 	}
 }
 
@@ -178,7 +155,7 @@ write_ctrl(small_event_t *evb, event_t *ev, play_ctx_t *ctx)
 		int v = map_value(ev->node);
 		if (ev->cctx->value != v) {
 			ev->cctx->value = v;
-			ci->write(evb, ci, ev->channel, v);
+			ci->write(evb, ev->channel, ev->cctx->type, v);
 		}
 	}
 }
@@ -203,8 +180,6 @@ write_noteon(small_event_t *evb, event_t *ev, play_ctx_t *ctx)
 	if (ctx->channel_notes[channel] == 0) {
 		ctx->channel_owner[channel] = ev->track;
 		flush_cctrl_cache(ctx, channel);
-		if (prev_owner != ev->track)
-			write_tvalues(ctx, channel, prev_owner);
 	} else
 		assert(prev_owner == ev->track);
 
@@ -282,7 +257,7 @@ file_play_(file_t *file, time_t time, tevent_clb_t tevent_clb,
 	file_flatten(file);
 
 	for (i = 0; i < FCTRLS; i++) {
-		ctrl_ctx_init(&ctx.fctrl[i], &fctrl_info[i]);
+		ctrl_ctx_init(&ctx.fctrl[i], &fctrl_info[i], i);
 		push_map(&ctx, &(event_t){
 			.prio = i,
 			.track = -1,
@@ -294,7 +269,7 @@ file_play_(file_t *file, time_t time, tevent_clb_t tevent_clb,
 
 	for (i = 0; i < CHANNELS; i++)
 		for (j = 0; j < CCTRLS; j++) {
-			ctrl_ctx_init(&ctx.cctrl[i][j], &cctrl_info[j]);
+			ctrl_ctx_init(&ctx.cctrl[i][j], &cctrl_info[j], j);
 			push_map(&ctx, &(event_t){
 				.prio = 0,
 				.track = -1,

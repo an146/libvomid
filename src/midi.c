@@ -15,24 +15,6 @@ const uchar magic_vomid[4] = {'V', 'o', 'm', 0x1D};
 
 const uchar midi_eot[3] = {0xFF, VMD_META_EOT, 0};
 
-static int
-blog2(int n)
-{
-	int ret = 0;
-
-	while (n > 1) {
-		n /= 2;
-		ret++;
-	}
-	return ret;
-}
-
-int
-timesig_construct(int numer, int denom)
-{
-	return (numer & 0xFF) + (blog2(denom) << 8);
-}
-
 double
 time2systime(time_t time, int tempo, unsigned int division)
 {
@@ -58,20 +40,20 @@ read_timesig(uchar *data, int len)
 }
 
 static void
-write_ctrl(small_event_t *ev, ctrl_info_t *info, int channel, int value)
+write_ctrl(small_event_t *ev, int channel, int type, int value)
 {
 	ev->len = 3;
 	ev->buf[0] = VOICE_CONTROLLER + channel;
-	ev->buf[1] = info->midi_ctrl;
+	ev->buf[1] = type;
 	assert(value >= 0 && value < 128);
 	ev->buf[2] = value;
 }
 
 static void
-write_tempo(small_event_t *ev, ctrl_info_t *info, int channel, int value)
+write_tempo(small_event_t *ev, int channel, int type, int value)
 {
 	assert(value >= 0 && value < 0x1000000);
-	midi_write_meta(ev, META_TEMPO, (uchar[]){value / 0x10000, value / 0x100, value}, 3);
+	midi_write_meta(ev, type, (uchar[]){value / 0x10000, value / 0x100, value}, 3);
 	/*
 	ev->len = 4;
 	buf[0] = 0xFF;
@@ -84,13 +66,13 @@ write_tempo(small_event_t *ev, ctrl_info_t *info, int channel, int value)
 }
 
 static void
-write_timesig(small_event_t *ev, ctrl_info_t *info, int channel, int value)
+write_timesig(small_event_t *ev, int channel, int type, int value)
 {
-	midi_write_meta(ev, META_TIMESIG, (uchar[]){value & 0xFF, value >> 8, 0x60, 8}, 4);
+	midi_write_meta(ev, type, (uchar[]){value & 0xFF, value >> 8, 0x60, 8}, 4);
 }
 
 static void
-write_program(small_event_t *ev, ctrl_info_t *info, int channel, int value)
+write_program(small_event_t *ev, int channel, int type, int value)
 {
 	ev->len = 2;
 	ev->buf[0] = VOICE_PROGRAM + channel;
@@ -99,7 +81,7 @@ write_program(small_event_t *ev, ctrl_info_t *info, int channel, int value)
 }
 
 static void
-write_pitchwheel(small_event_t *ev, ctrl_info_t *info, int channel, int value)
+write_pitchwheel(small_event_t *ev, int channel, int type, int value)
 {
 	ev->len = 3;
 	ev->buf[0] = VOICE_PITCHWHEEL + channel;
@@ -208,25 +190,16 @@ midi_fwrite_notesystem(FILE *out, const notesystem_t *ns)
 	midi_fwrite_propr(out, PROPR_NOTESYSTEM, (uchar *)ns->scala, strlen(ns->scala));
 }
 
-ctrl_info_t tvalue_info[TVALUES] = {
-	{"Volume", 100, CTRL_VOLUME, -1, NULL, write_ctrl},
-	{"Pan", 64, CTRL_PAN, -1, NULL, write_ctrl},
-	//{"Track Name", NULL, -1, META_TRACKNAME, read_text, write_text},
-};
-
 ctrl_info_t fctrl_info[FCTRLS] = {
-	{"Tempo", TEMPO_MIDI(120), -1, META_TEMPO, read_tempo, write_tempo},
-	{"Time Signature", /* TIMESIG(4, 4) */ 0x204, -1, META_TIMESIG, read_timesig, write_timesig},
-};
-
-ctrl_info_t tctrl_info[TCTRLS] = {
-	{"Balance", 64, CTRL_BALANCE, -1, NULL, write_ctrl},
-	{"Expression", 127, CTRL_EXPRESSION, -1, NULL, write_ctrl},
+	[FCTRL_TEMPO]   = {"Tempo",          TEMPO_MIDI(120), read_tempo,   write_tempo},
+	[FCTRL_TIMESIG] = {"Time Signature", TIMESIG(4, 4),   read_timesig, write_timesig},
 };
 
 ctrl_info_t cctrl_info[CCTRLS] = {
-	{"Program", 0, -1, -1, NULL, write_program},
-	{"Pitch Wheel", 0, -1, -1, NULL, write_pitchwheel},
+	[CCTRL_VOLUME]     = {"Volume",      100, NULL, write_ctrl},
+	[CCTRL_PAN]        = {"Pan",         64,  NULL, write_ctrl},
+	[CCTRL_PROGRAM]    = {"Program",     0,   NULL, write_program},
+	[CCTRL_PITCHWHEEL] = {"Pitch Wheel", 0,   NULL, write_pitchwheel},
 };
 
 const char *gm_program_name[PROGRAMS] = {

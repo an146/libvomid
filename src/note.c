@@ -42,16 +42,12 @@ void
 copy_note(note_t *note, track_t *track, time_t dt, pitch_t dp)
 {
 	note_t *dnote = track_insert(track, note->on_time + dt, note->off_time + dt, note->pitch);
-	assert(bst_find(&dnote->channel->notes, &dnote) != NULL);
 	for (int i = 0; i < CCTRLS; i++) {
 		map_copy(&note->channel->ctrl[i], note->on_time, note->off_time,
 		         &dnote->channel->ctrl[i], dnote->on_time);
 	}
-	assert(bst_find(&dnote->channel->notes, &dnote) != NULL);
-	note_set_cctrl(dnote, CCTRL_PROGRAM, track_get_program(track));
-	assert(bst_find(&dnote->channel->notes, &dnote) != NULL);
+	note_set_cctrl(dnote, CCTRL_PROGRAM, track_get_ctrl(track, CCTRL_PROGRAM));
 	note_set_pitch(dnote, note->pitch + dp);
-	assert(bst_find(&dnote->channel->notes, &dnote) != NULL);
 }
 
 void

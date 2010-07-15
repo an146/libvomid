@@ -38,14 +38,7 @@ enum {
 
 	VMD_META_TRACKNAME = 0x03,
 	VMD_META_EOT = 0x2F,
-	VMD_META_TEMPO = 0x51,
-	VMD_META_TIMESIG = 0x58,
 	VMD_META_PROPRIETARY = 0x7f,
-
-	VMD_CTRL_VOLUME = 7,
-	VMD_CTRL_BALANCE = 8,
-	VMD_CTRL_PAN = 10,
-	VMD_CTRL_EXPRESSION = 11,
 
 	VMD_CTRL_CONTROLLERS_OFF = 121,
 	VMD_CTRL_NOTES_OFF = 123,
@@ -62,15 +55,11 @@ enum {
 struct vmd_ctrl_info_t {
 	const char  *name;
 	int          default_value;
-	int          midi_ctrl;
-	int          midi_meta;
-	int  (*read)(unsigned char *, int); /* used only for metas */
-	void (*write)(vmd_small_event_t *, vmd_ctrl_info_t *, int, int);
+	int  (*read)(unsigned char *buf, int size); /* used only for metas */
+	void (*write)(vmd_small_event_t *ev, int channel, int type, int value);
 };
 
-extern vmd_ctrl_info_t vmd_tvalue_info[VMD_TVALUES];
 extern vmd_ctrl_info_t vmd_fctrl_info[VMD_FCTRLS];
-extern vmd_ctrl_info_t vmd_tctrl_info[VMD_TCTRLS];
 extern vmd_ctrl_info_t vmd_cctrl_info[VMD_CCTRLS];
 
 extern const uchar vmd_magic_mthd[4];
@@ -190,11 +179,8 @@ struct vmd_track_note_t {
 
 struct vmd_track_rev_t {
 	vmd_bst_rev_t *notes;
-	vmd_bst_rev_t *ctrl[VMD_TCTRLS];
-	int value[VMD_TVALUES];
-
 	const char *name;
-	int primary_program;
+	int primary_ctrl_value[VMD_CCTRLS];
 };
 
 vmd_status_t        vmd_track_flatten(vmd_track_t *);

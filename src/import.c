@@ -168,72 +168,13 @@ v_note_aftertouch(channel_t *channel, uchar *data, import_ctx_t *ctx)
 {
 }
 
-enum {TVALUE = 1, FCTRL, TCTRL, CCTRL};
-
-typedef struct ctrl_import_info_t {
-	int type;
-	int idx;
-	ctrl_info_t *info;
-} ctrl_import_info_t;
-
-static ctrl_import_info_t ctrl_info[CTRLS] = {};
-static ctrl_import_info_t meta_info[METAS] = {};
-static int ctrl_info_initialized = 0;
-
-static void
-register_ctrl(ctrl_info_t *info, int type, int idx)
-{
-	int n;
-
-	if ((n = info->midi_ctrl) >= 0) {
-		ctrl_info[n].type = type;
-		ctrl_info[n].idx = idx;
-		ctrl_info[n].info = info;
-	} else if ((n = info->midi_meta) >= 0) {
-		meta_info[n].type = type;
-		meta_info[n].idx = idx;
-		meta_info[n].info = info;
-	}
-}
-
-static void
-init_ctrl_info()
-{
-	int i;
-
-	for (i = 0; i < TVALUES; i++)
-		register_ctrl(&tvalue_info[i], TVALUE, i);
-	for (i = 0; i < FCTRLS; i++)
-		register_ctrl(&fctrl_info[i], FCTRL, i);
-	for (i = 0; i < TCTRLS; i++)
-		register_ctrl(&tctrl_info[i], TCTRL, i);
-	for (i = 0; i < CCTRLS; i++)
-		register_ctrl(&cctrl_info[i], CCTRL, i);
-	ctrl_info_initialized = 1;
-}
-
 static void
 v_controller(channel_t *channel, uchar *data, import_ctx_t *ctx)
 {
 	uchar ctrl = data[0];
 	uchar value = data[1];
 
-	if (!ctrl_info_initialized)
-		init_ctrl_info();
-
-	ctrl_import_info_t *ci = &ctrl_info[ctrl];
-
-	switch (ci->type) {
-	case TVALUE:
-		ctx->track->value[ci->idx] = value;
-		break;
-	case TCTRL:
-		map_set(&ctx->track->ctrl[ci->idx], ctx->time, value);
-		break;
-	case CCTRL:
-		map_set(&channel->ctrl[ci->idx], ctx->time, value);
-		break;
-	}
+	map_set(&channel->ctrl[ctrl], ctx->time, value);
 }
 
 static void
@@ -332,7 +273,7 @@ static voice_info_t voice_info[7] = {
 
 typedef void (*meta_handler_t)(uchar *data, int len, import_ctx_t *ctx);
 
-static meta_handler_t meta_static_info[METAS] = {
+static meta_handler_t meta_info[METAS] = {
 	[META_TRACKNAME] = m_trackname,
 	[META_EOT] = m_eot,
 	[META_PROPRIETARY] = m_proprietary,
@@ -341,31 +282,19 @@ static meta_handler_t meta_static_info[METAS] = {
 static void
 meta(int type, uchar *data, int len, import_ctx_t *ctx)
 {
-	if (meta_static_info[type] != NULL) {
-		meta_static_info[type](data, len, ctx);
+	meta_handler_t specific_handler = meta_info[type];
+	if (specific_handler != NULL) {
+		specific_handler(data, len, ctx);
 		return;
 	}
 
-	if (!ctrl_info_initialized)
-		init_ctrl_info();
-
-	ctrl_import_info_t *ci = &meta_info[type];
-	if (ci->type == 0)
+	if (fctrl_info[type].read == NULL) {
+		/* not supported */
 		return;
-
-	int value = ci->info->read(data, len);
-
-	switch (ci->type) {
-	case TVALUE:
-		ctx->track->value[ci->idx] = value;
-		break;
-	case FCTRL:
-		map_set(&ctx->file->ctrl[ci->idx], ctx->time, value);
-		break;
-	case TCTRL:
-		map_set(&ctx->track->ctrl[ci->idx], ctx->time, value);
-		break;
 	}
+
+	int value = fctrl_info[type].read(data, len);
+	map_set(&ctx->file->ctrl[type], ctx->time, value);
 }
 
 /* TODO: error handling */

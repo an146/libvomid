@@ -106,12 +106,9 @@ track_init(track_t *track, file_t *file, chanmask_t chanmask)
 	track->next = file->tracks_list;
 	file->tracks_list = track;
 	bst_init(&track->notes, sizeof(track_note_t), offsetof(note_t, mark), cmp, upd);
-	for (int i = 0; i < TVALUES; i++)
-		track->value[i] = tvalue_info[i].default_value;
-	for (int i = 0; i < TCTRLS; i++)
-		map_init(&track->ctrl[i], tctrl_info[i].default_value);
 	track->name = "";
-	track->primary_program = -1;
+	for (int i = 0; i < CCTRLS; i++)
+		track->primary_ctrl_value[i] = -1;
 	track->notesystem = notesystem_midistd();
 	track->chanmask = chanmask;
 	track->temp_channels = NULL;
@@ -122,8 +119,6 @@ void
 track_fini(track_t *track)
 {
 	bst_fini(&track->notes);
-	for (int i = 0; i < TCTRLS; i++)
-		map_fini(&track->ctrl[i]);
 	for (channel_t *i = track->temp_channels, *next; i != NULL; i = next) {
 		next = i->next;
 		channel_destroy(i);
@@ -180,7 +175,7 @@ track_insert(track_t *track, time_t beg, time_t end, pitch_t pitch)
 
 	note_t *note = insert_note(&n);
 	note_reset_pitch(note, pitch);
-	map_set_range(&note->channel->ctrl[CCTRL_PROGRAM], beg, end, track_get_program(track));
+	map_set_range(&note->channel->ctrl[CCTRL_PROGRAM], beg, end, track_get_ctrl(track, CCTRL_PROGRAM));
 	return note;
 }
 
@@ -307,11 +302,8 @@ void
 track_commit(track_t *track, track_rev_t *rev)
 {
 	rev->notes = bst_commit(&track->notes);
-	for (int i = 0; i < TCTRLS; i++)
-		rev->ctrl[i] = bst_commit(&track->ctrl[i].bst);
-	memcpy(rev->value, track->value, sizeof(rev->value));
 	rev->name = track->name;
-	rev->primary_program = track->primary_program;
+	memcpy(rev->primary_ctrl_value, track->primary_ctrl_value, sizeof(rev->primary_ctrl_value));
 }
 
 void
@@ -322,33 +314,32 @@ track_update(track_t *track, track_rev_t *rev)
 			erase_note(channel_note(bst_root(&i->notes)));
 
 	bst_update(&track->notes, rev->notes);
-	for (int i = 0; i < TCTRLS; i++)
-		bst_update(&track->ctrl[i].bst, rev->ctrl[i]);
-	memcpy(track->value, rev->value, sizeof(track->value));
 	track->name = rev->name;
-	track->primary_program = rev->primary_program;
+	memcpy(track->primary_ctrl_value, rev->primary_ctrl_value, sizeof(track->primary_ctrl_value));
 }
 
 int
-track_get_program(track_t *track){
-	if (track->primary_program < 0) {
+track_get_ctrl(track_t *track, int ctrl){
+	if (track->primary_ctrl_value[ctrl] < 0) {
 		if (bst_empty(&track->notes))
-			track->primary_program = 0;
+			track->primary_ctrl_value[ctrl] = cctrl_info[ctrl].default_value;
 		else {
 			note_t *n = track_note(bst_root(&track->notes));
-			track->primary_program = map_get(&n->channel->ctrl[CCTRL_PROGRAM], n->on_time, NULL);
+			track->primary_ctrl_value[ctrl] = map_get(&n->channel->ctrl[ctrl], n->on_time, NULL);
 		}
 	}
-	return track->primary_program;
+	return track->primary_ctrl_value[ctrl];
 }
 
 void
-track_set_program(track_t *track, int p){
-	track->primary_program = p;
+track_set_ctrl(track_t *track, int ctrl, int value){
+	track->primary_ctrl_value[ctrl] = value;
+
+	/* TODO: optimize */
 	BST_FOREACH (bst_node_t *i, &track->notes) {
 		note_t *n = track_note(i);
 		//no need to isolate them, we operate on the whole track
-		map_set_range(&n->channel->ctrl[CCTRL_PROGRAM], n->on_time, n->off_time, p);
+		map_set_range(&n->channel->ctrl[ctrl], n->on_time, n->off_time, value);
 	}
 }
 

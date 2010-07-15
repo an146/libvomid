@@ -243,7 +243,7 @@
 #define track_fini vmd_track_fini
 #define track_flatten vmd_track_flatten
 #define track_for_range vmd_track_for_range
-#define track_get_program vmd_track_get_program
+#define track_get_ctrl vmd_track_get_ctrl
 #define track_idx vmd_track_idx
 #define track_init vmd_track_init
 #define track_insert vmd_track_insert
@@ -253,8 +253,8 @@
 #define track_note_t vmd_track_note_t
 #define track_range vmd_track_range
 #define track_rev_t vmd_track_rev_t
+#define track_set_ctrl vmd_track_set_ctrl
 #define track_set_notesystem vmd_track_set_notesystem
-#define track_set_program vmd_track_set_program
 #define track_t vmd_track_t
 #define track_temp_channel vmd_track_temp_channel
 #define track_update vmd_track_update

@@ -69,8 +69,15 @@ typedef uint16_t vmd_chanmask_t;
 #define VMD_TEMPO_MIDI(bpm) (60 * 1000000 / (bpm))
 #define VMD_TEMPO_BPM(midi) (60 * 1000000 / (midi))
 
-int vmd_timesig_construct(int, int);
-#define VMD_TIMESIG vmd_timesig_construct
+/* utility: binary logarithm */
+#define VMD_BLOG2(n)  ((n) >= 2 ? 1 : 0)
+#define VMD_BLOG4(n)  ((n) >= (1 << 2)  ? 2  + VMD_BLOG2(n >> 2)  : VMD_BLOG2(n))
+#define VMD_BLOG8(n)  ((n) >= (1 << 4)  ? 4  + VMD_BLOG4(n >> 4)  : VMD_BLOG4(n))
+#define VMD_BLOG16(n) ((n) >= (1 << 8)  ? 8  + VMD_BLOG8(n >> 2)  : VMD_BLOG8(n))
+#define VMD_BLOG32(n) ((n) >= (1 << 16) ? 16 + VMD_BLOG8(n >> 16) : VMD_BLOG16(n))
+#define VMD_BLOG VMD_BLOG32
+
+#define VMD_TIMESIG(numer, denom) ((numer & 0xFF) + (VMD_BLOG(denom) << 8))
 #define VMD_TIMESIG_NUMER(timesig) ((timesig) & 0xFF)
 #define VMD_TIMESIG_DENOM(timesig) (1 << ((timesig) >> 8))
 
@@ -80,25 +87,23 @@ vmd_systime_t vmd_time2systime(vmd_time_t, int, unsigned int);
 vmd_time_t vmd_systime2time(vmd_systime_t, int, unsigned int);
 
 enum {
-	VMD_TVALUE_VOLUME,
-	VMD_TVALUE_PAN,
-	VMD_TVALUES
+	VMD_FCTRL_TEMPO   = 0x51,
+	VMD_FCTRL_TIMESIG = 0x58,
+
+	VMD_MIDI_METAS    = 128,
+
+	VMD_FCTRLS        = VMD_MIDI_METAS
 };
 
 enum {
-	VMD_FCTRL_TEMPO,
-	VMD_FCTRL_TIMESIG,
-	VMD_FCTRLS
-};
+	VMD_CCTRL_VOLUME     = 7,
+	VMD_CCTRL_BALANCE    = 8,
+	VMD_CCTRL_PAN        = 10,
+	VMD_CCTRL_EXPRESSION = 11,
 
-enum {
-	VMD_TCTRL_BALANCE,
-	VMD_TCTRL_EXPRESSION,
-	VMD_TCTRLS
-};
+	VMD_MIDI_CTRLS      = 128,
 
-enum {
-	VMD_CCTRL_PROGRAM,
+	VMD_CCTRL_PROGRAM    = VMD_MIDI_CTRLS,
 	VMD_CCTRL_PITCHWHEEL,
 	VMD_CCTRLS
 };
@@ -351,16 +356,14 @@ struct vmd_track_t {
 	vmd_file_t      *file;
 	vmd_bst_t        notes;
 	vmd_notesystem_t notesystem;
-	vmd_map_t        ctrl[VMD_TCTRLS];
-	int              value[VMD_TVALUES];
 
 	vmd_chanmask_t   chanmask;
 	int              channel_usage[VMD_CHANNELS];
 	vmd_channel_t   *temp_channels;
 	vmd_track_t     *next;
+	int              primary_ctrl_value[VMD_CCTRLS];
 
 	const char      *name;
-	int              primary_program;
 };
 
 typedef void *(*vmd_note_callback_t)(vmd_note_t *, void *);
@@ -369,8 +372,8 @@ void vmd_track_init(vmd_track_t *, vmd_file_t *, vmd_chanmask_t);
 void vmd_track_fini(vmd_track_t *);
 void vmd_track_clear(vmd_track_t *);
 
-int  vmd_track_get_program(vmd_track_t *);
-void vmd_track_set_program(vmd_track_t *, int);
+int  vmd_track_get_ctrl(vmd_track_t *track, int ctrl);
+void vmd_track_set_ctrl(vmd_track_t *track, int ctrl, int value);
 
 vmd_track_t *vmd_track_create(vmd_file_t *file, vmd_chanmask_t chanmask);
 VMD_DEFINE_DESTROY(track) // vmd_track_destroy

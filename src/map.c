@@ -142,6 +142,20 @@ map_copy(map_t *map1, time_t beg1, time_t end1, map_t *map2, time_t beg2)
 		});
 }
 
+int
+map_vget(map_t *map)
+{
+	bst_node_t *node = bst_upper_bound(&map->bst, 0);
+	return node == bst_end(&map->bst) ? map->default_value : map_value(node);
+}
+
+void
+map_vset(map_t *map, int value)
+{
+	bst_clear(&map->bst);
+	map_set(map, 0, value);
+}
+
 time_t
 map_time(bst_node_t *node)
 {
