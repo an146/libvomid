@@ -1,6 +1,9 @@
 shortnames="include/vomid_shortnames.h"
 echo Generating $shortnames
-egrep -oih "vmdl?_[a-z0-9_]+" include/vomid.h include/vomid_local.h include/vomid_test.h | \
+cat include/vomid.h include/vomid_local.h include/vomid_test.h | \
+	sed -rn 's/([Vv][Mm][Dd][Ll]?_[A-Za-z0-9_]+)/\n\1\n/gp' | \
+	grep -i '^vmd' | \
 	sort | uniq | \
-	sed -r 's/([^_]*_)(.*)/#define \2 \1\2/' > $shortnames
+	sed -r 's/([^_]+_)(.*)/#define \2 \1\2/' | \
+	cat > $shortnames
 
