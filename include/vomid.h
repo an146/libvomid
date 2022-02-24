@@ -130,7 +130,7 @@ struct vmd_bst_node_t {
 	 * so we can use it for node marking */
 	unsigned was_in_tree    :1;
 
-	char data[];
+	char data[0];
 };
 
 /*
